@@ -93,59 +93,57 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
       onSignup();
     }
   };
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className='sm:max-w-lg p-0 overflow-hidden rounded-3xl border-0 shadow-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800'>
-        <DialogHeader className='px-8 pt-8 pb-2 relative'>
-          <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <Shield className="w-8 h-8 text-white" />
+  return (    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className='w-[90vw] max-w-sm mx-auto p-0 overflow-hidden rounded-xl border-0 shadow-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800'>
+        <DialogHeader className='px-4 pt-4 pb-2 relative'>
+          <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-2 shadow-lg">
+            <Shield className="w-5 h-5 text-white" />
           </div>
-          <DialogTitle className='text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent'>
+          <DialogTitle className='text-lg font-bold text-center bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent'>
             Welcome to ZapTone
           </DialogTitle>
-          <DialogDescription className='text-center text-muted-foreground mt-2 text-base'>
-            Connect with your Nostr identity to unlock the full experience
+          <DialogDescription className='text-center text-muted-foreground mt-1 text-xs'>
+            Connect with your Nostr identity
           </DialogDescription>
         </DialogHeader>
 
-        <div className='px-8 py-6 space-y-6'>
-          <Tabs defaultValue={'nostr' in window ? 'extension' : 'key'} className='w-full'>
-            <TabsList className='grid w-full grid-cols-3 mb-8 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl h-12'>
+        <div className='px-4 py-3 space-y-3'>          <Tabs defaultValue={'nostr' in window ? 'extension' : 'key'} className='w-full'>
+            <TabsList className='grid w-full grid-cols-3 mb-3 bg-gray-100 dark:bg-gray-800 p-0.5 rounded-lg h-8'>
               <TabsTrigger 
                 value='extension' 
-                className='rounded-xl font-medium data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-purple-600 transition-all duration-200'
+                className='rounded-md text-xs font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-purple-600 transition-all duration-200'
               >
                 Extension
               </TabsTrigger>
               <TabsTrigger 
                 value='key' 
-                className='rounded-xl font-medium data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-purple-600 transition-all duration-200'
+                className='rounded-md text-xs font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-purple-600 transition-all duration-200'
               >
                 Private Key
               </TabsTrigger>
               <TabsTrigger 
                 value='bunker' 
-                className='rounded-xl font-medium data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-purple-600 transition-all duration-200'
+                className='rounded-md text-xs font-medium data-[state=active]:bg-white data-[state=active]:shadow-sm data-[state=active]:text-purple-600 transition-all duration-200'
               >
                 Bunker
               </TabsTrigger>
-            </TabsList>            <TabsContent value='extension' className='space-y-6 mt-6'>
-              <div className='text-center p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 border border-purple-100 dark:border-purple-800'>
-                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                  <Shield className='w-8 h-8 text-white' />
+            </TabsList>            <TabsContent value='extension' className='space-y-3'>
+              <div className='text-center p-3 rounded-lg bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 border border-purple-100 dark:border-purple-800'>
+                <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center mx-auto mb-2 shadow-lg">
+                  <Shield className='w-5 h-5 text-white' />
                 </div>
-                <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">Browser Extension</h3>
-                <p className='text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed'>
-                  Secure one-click authentication using your Nostr browser extension. The fastest and safest way to connect.
+                <h3 className="font-semibold text-sm mb-1 text-gray-900 dark:text-white">Browser Extension</h3>
+                <p className='text-xs text-gray-600 dark:text-gray-300 mb-3 leading-relaxed'>
+                  Secure one-click authentication using your Nostr browser extension.
                 </p>
                 <Button
-                  className='w-full rounded-2xl py-4 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium'
+                  className='w-full rounded-lg py-2 h-9 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-sm'
                   onClick={handleExtensionLogin}
                   disabled={isLoading}
                 >
                   {isLoading ? (
                     <div className="flex items-center gap-2">
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                       Connecting...
                     </div>
                   ) : (
@@ -153,26 +151,26 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   )}
                 </Button>
                 {!('nostr' in window) && (
-                  <p className='text-xs text-amber-600 dark:text-amber-400 mt-3'>
+                  <p className='text-xs text-amber-600 dark:text-amber-400 mt-2'>
                     No extension detected. Please install a Nostr extension like nos2x or Alby.
                   </p>
                 )}
               </div>
-            </TabsContent>            <TabsContent value='key' className='space-y-6 mt-6'>
-              <div className='space-y-6 p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-100 dark:border-blue-800'>
-                <div className="text-center mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
-                    <Shield className='w-8 h-8 text-white' />
+            </TabsContent>            <TabsContent value='key' className='space-y-4 mt-4'>
+              <div className='space-y-4 p-4 rounded-lg bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-100 dark:border-blue-800'>
+                <div className="text-center mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center mx-auto mb-2 shadow-lg">
+                    <Shield className='w-6 h-6 text-white' />
                   </div>
-                  <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Private Key Login</h3>
-                  <p className='text-sm text-gray-600 dark:text-gray-300 mt-2'>
+                  <h3 className="font-semibold text-base text-gray-900 dark:text-white">Private Key Login</h3>
+                  <p className='text-xs text-gray-600 dark:text-gray-300 mt-1'>
                     Enter your nsec private key to securely access your account
                   </p>
                 </div>
 
-                <div className='space-y-4'>
-                  <div className='space-y-2'>
-                    <label htmlFor='nsec' className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                <div className='space-y-3'>
+                  <div className='space-y-1'>
+                    <label htmlFor='nsec' className='text-xs font-medium text-gray-700 dark:text-gray-300'>
                       Nostr Private Key (nsec)
                     </label>
                     <Input
@@ -180,7 +178,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                       type="password"
                       value={nsec}
                       onChange={(e) => setNsec(e.target.value)}
-                      className='rounded-xl border-gray-300 dark:border-gray-600 focus-visible:ring-blue-500 focus-visible:border-blue-500 h-12 bg-white/50 dark:bg-gray-900/50'
+                      className='rounded-lg border-gray-300 dark:border-gray-600 focus-visible:ring-blue-500 focus-visible:border-blue-500 h-9 bg-white/50 dark:bg-gray-900/50 text-sm'
                       placeholder='nsec1...'
                     />
                   </div>
@@ -204,22 +202,22 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                     />
                     <Button
                       variant='outline'
-                      className='w-full rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/20 h-12 transition-all duration-200'
+                      className='w-full rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/20 h-9 transition-all duration-200 text-sm'
                       onClick={() => fileInputRef.current?.click()}
                     >
-                      <Upload className='w-4 h-4 mr-2' />
+                      <Upload className='w-3 h-3 mr-2' />
                       Upload Key File
                     </Button>
                   </div>
 
                   <Button
-                    className='w-full rounded-2xl py-4 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium'
+                    className='w-full rounded-lg py-2 h-9 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-sm'
                     onClick={handleKeyLogin}
                     disabled={isLoading || !nsec.trim()}
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         Verifying...
                       </div>
                     ) : (
@@ -228,32 +226,32 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   </Button>
                 </div>
               </div>
-            </TabsContent>            <TabsContent value='bunker' className='space-y-6 mt-6'>
-              <div className='space-y-6 p-6 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 border border-emerald-100 dark:border-emerald-800'>
-                <div className="text-center mb-4">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
-                    <Shield className='w-8 h-8 text-white' />
+            </TabsContent>            <TabsContent value='bunker' className='space-y-4 mt-4'>
+              <div className='space-y-4 p-4 rounded-lg bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 border border-emerald-100 dark:border-emerald-800'>
+                <div className="text-center mb-3">
+                  <div className="w-12 h-12 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center mx-auto mb-2 shadow-lg">
+                    <Shield className='w-6 h-6 text-white' />
                   </div>
-                  <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Remote Signer</h3>
-                  <p className='text-sm text-gray-600 dark:text-gray-300 mt-2'>
+                  <h3 className="font-semibold text-base text-gray-900 dark:text-white">Remote Signer</h3>
+                  <p className='text-xs text-gray-600 dark:text-gray-300 mt-1'>
                     Connect using a remote signing service for enhanced security
                   </p>
                 </div>
 
-                <div className='space-y-4'>
-                  <div className='space-y-2'>
-                    <label htmlFor='bunkerUri' className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                <div className='space-y-3'>
+                  <div className='space-y-1'>
+                    <label htmlFor='bunkerUri' className='text-xs font-medium text-gray-700 dark:text-gray-300'>
                       Bunker Connection URI
                     </label>
                     <Input
                       id='bunkerUri'
                       value={bunkerUri}
                       onChange={(e) => setBunkerUri(e.target.value)}
-                      className='rounded-xl border-gray-300 dark:border-gray-600 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-12 bg-white/50 dark:bg-gray-900/50'
+                      className='rounded-lg border-gray-300 dark:border-gray-600 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-9 bg-white/50 dark:bg-gray-900/50 text-sm'
                       placeholder='bunker://...'
                     />
                     {bunkerUri && !bunkerUri.startsWith('bunker://') && (
-                      <div className='flex items-center gap-2 text-red-500 text-xs mt-2'>
+                      <div className='flex items-center gap-2 text-red-500 text-xs mt-1'>
                         <div className="w-1 h-1 bg-red-500 rounded-full" />
                         URI must start with "bunker://"
                       </div>
@@ -261,13 +259,13 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   </div>
 
                   <Button
-                    className='w-full rounded-2xl py-4 h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium'
+                    className='w-full rounded-lg py-2 h-9 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium text-sm'
                     onClick={handleBunkerLogin}
                     disabled={isLoading || !bunkerUri.trim() || !bunkerUri.startsWith('bunker://')}
                   >
                     {isLoading ? (
                       <div className="flex items-center gap-2">
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         Connecting...
                       </div>
                     ) : (
@@ -276,11 +274,9 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                   </Button>
                 </div>
               </div>
-            </TabsContent>          </Tabs>
-
-          <div className='text-center pt-6 border-t border-gray-200 dark:border-gray-700'>
-            <div className="space-y-3">
-              <p className='text-sm text-gray-600 dark:text-gray-400'>
+            </TabsContent></Tabs>          <div className='text-center pt-4 border-t border-gray-200 dark:border-gray-700'>
+            <div className="space-y-2">
+              <p className='text-xs text-gray-600 dark:text-gray-400'>
                 New to Nostr?{' '}
                 <button
                   onClick={handleSignupClick}
@@ -290,8 +286,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
                 </button>
               </p>
               <p className='text-xs text-gray-500 dark:text-gray-500 leading-relaxed'>
-                Your keys, your identity, your data. <br />
-                Welcome to the decentralized future of social media.
+                Your keys, your identity, your data. Welcome to the decentralized future.
               </p>
             </div>
           </div>
