@@ -10,6 +10,7 @@ import { Toaster as Sonner, Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { NostrLoginProvider } from '@nostrify/react/login';
 import { AppProvider } from '@/components/AppProvider';
+import { MusicProvider } from '@/contexts/MusicContext.tsx';
 import AppRouter from './AppRouter';
 import type { AppConfig } from "./contexts/AppContext";
 
@@ -47,13 +48,14 @@ export function App() {
       <AppProvider storageKey="nostr:app-config" defaultConfig={defaultConfig} presetRelays={presetRelays}>
         <QueryClientProvider client={queryClient}>
           <NostrLoginProvider storageKey='nostr:login'>
-            <NostrProvider>
-              <TooltipProvider>
+            <NostrProvider>              <TooltipProvider>
                 <Toaster />
                 <Sonner />
-                <Suspense>
-                  <AppRouter />
-                </Suspense>
+                <MusicProvider>
+                  <Suspense>
+                    <AppRouter />
+                  </Suspense>
+                </MusicProvider>
               </TooltipProvider>
             </NostrProvider>
           </NostrLoginProvider>
