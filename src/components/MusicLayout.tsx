@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { AudioPlayer } from '@/components/AudioPlayer';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,8 @@ import {
   PlayCircle,
   Pause,
   Volume2,
+  VolumeX,
+  VolumeOff,
   Shuffle,
   Repeat,
   SkipBack,
@@ -40,9 +43,7 @@ interface MusicLayoutProps {
 export function MusicLayout({ children }: MusicLayoutProps) {
   const { user, metadata } = useCurrentUser();
   const { logout } = useLoginActions();
-  const { toast } = useToast();
-  
-  const { 
+  const { toast } = useToast();  const { 
     playerState, 
     pauseTrack, 
     resumeTrack,
@@ -50,8 +51,11 @@ export function MusicLayout({ children }: MusicLayoutProps) {
     previousTrack,
     seekTo,
     setVolume,
+    toggleMute,
     toggleShuffle,
-    toggleRepeat
+    toggleRepeat,
+    updateTime,
+    seekTime
   } = useMusic();
   
   const [showLogin, setShowLogin] = useState(false);
@@ -72,12 +76,19 @@ export function MusicLayout({ children }: MusicLayoutProps) {
     const mins = Math.floor(seconds / 60);
     const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
-
-  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+  };  const handleProgressClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (playerState.duration <= 0) return;
+    
     const rect = e.currentTarget.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
     const newTime = percent * playerState.duration;
+    
+    console.log('Progress bar clicked:', {
+      percent: percent * 100,
+      newTime,
+      duration: playerState.duration
+    });
+    
     seekTo(newTime);
   };
 
@@ -255,36 +266,58 @@ export function MusicLayout({ children }: MusicLayoutProps) {
                   <Repeat className={`w-4 h-4 ${playerState.repeat !== 'none' ? 'text-primary' : 'text-muted-foreground'}`} />
                   {playerState.repeat === 'one' && <Dot className="w-2 h-2 text-primary absolute -top-1 -right-1" />}
                 </Button>
-              </div>
-              
-              {/* Progress Bar */}
+              </div>              {/* Progress Bar */}
               <div className="flex items-center gap-2 w-full text-xs text-muted-foreground">
                 <span>{formatTime(playerState.currentTime)}</span>
                 <div 
-                  className="flex-1 h-1 bg-muted rounded-full cursor-pointer relative"
+                  className="flex-1 h-2 bg-muted rounded-full cursor-pointer relative group hover:h-3 transition-all duration-200"
                   onClick={handleProgressClick}
                 >
                   <div 
-                    className="h-full bg-primary rounded-full transition-all duration-100"
-                    style={{ width: `${(playerState.currentTime / playerState.duration) * 100}%` }}
+                    className="h-full bg-primary rounded-full transition-all duration-100 group-hover:bg-primary/80"
+                    style={{ 
+                      width: `${playerState.duration > 0 ? (playerState.currentTime / playerState.duration) * 100 : 0}%` 
+                    }}
+                  />
+                  {/* Hover indicator */}
+                  <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+                    style={{ 
+                      left: `${playerState.duration > 0 ? (playerState.currentTime / playerState.duration) * 100 : 0}%`,
+                      transform: 'translateX(-50%) translateY(-50%)'
+                    }}
                   />
                 </div>
                 <span>{formatTime(playerState.duration)}</span>
               </div>
-            </div>
-
-            {/* Volume Control */}
+            </div>            {/* Volume Control */}
             <div className="flex items-center gap-2 flex-1 justify-end">
-              <Button variant="ghost" size="sm">
-                <Volume2 className="w-4 h-4" />
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={toggleMute}
+              >
+                {playerState.muted ? (
+                  <VolumeX className="w-4 h-4" />
+                ) : playerState.volume === 0 ? (
+                  <VolumeOff className="w-4 h-4" />
+                ) : (
+                  <Volume2 className="w-4 h-4" />
+                )}
               </Button>
               <div 
-                className="w-20 h-1 bg-muted rounded-full cursor-pointer relative hidden sm:block"
+                className="w-20 h-2 bg-muted rounded-full cursor-pointer relative hidden sm:block group hover:h-3 transition-all duration-200"
                 onClick={handleVolumeClick}
               >
                 <div 
-                  className="h-full bg-primary rounded-full"
-                  style={{ width: `${playerState.volume * 100}%` }}
+                  className="h-full bg-primary rounded-full transition-all duration-100 group-hover:bg-primary/80"
+                  style={{ width: `${playerState.muted ? 0 : playerState.volume * 100}%` }}
+                />
+                {/* Volume hover indicator */}
+                <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+                  style={{ 
+                    left: `${playerState.muted ? 0 : playerState.volume * 100}%`,
+                    transform: 'translateX(-50%) translateY(-50%)'
+                  }}
                 />
               </div>
             </div>
@@ -293,14 +326,23 @@ export function MusicLayout({ children }: MusicLayoutProps) {
       )}      {/* Login Dialog */}
       <LoginDialog 
         isOpen={showLogin}
-        onClose={() => setShowLogin(false)}
-        onLogin={() => {
+        onClose={() => setShowLogin(false)}        onLogin={() => {
           setShowLogin(false);
           toast({
             title: "Welcome to ZapTone!",
             description: "You have successfully signed in with Nostr",
           });
         }}
+      />      {/* Audio Player Component */}
+      <AudioPlayer
+        track={playerState.currentTrack}
+        isPlaying={playerState.isPlaying}
+        onTimeUpdate={updateTime}
+        onPlay={() => {}}
+        onPause={() => {}}
+        seekTime={seekTime}
+        volume={playerState.volume}
+        muted={playerState.muted}
       />
     </div>
   );

@@ -21,7 +21,6 @@ export interface PlayerState {
   currentTime: number;
   duration: number;
   volume: number;
-  muted: boolean;
   shuffle: boolean;
   repeat: 'none' | 'one' | 'all';
 }
@@ -37,29 +36,26 @@ export interface MusicContextType {
   previousTrack: () => void;
   seekTo: (time: number) => void;
   setVolume: (volume: number) => void;
-  toggleMute: () => void;
   toggleShuffle: () => void;
   toggleRepeat: () => void;
   addToQueue: (track: Track) => void;
   clearQueue: () => void;
   updateTime: (currentTime: number, duration: number) => void;
-  seekTime?: number;
 }
 
 const MusicContext = createContext<MusicContextType | undefined>(undefined);
 
-export function MusicProvider({ children }: { children: ReactNode }) {  const [playerState, setPlayerState] = useState<PlayerState>({
+export function MusicProvider({ children }: { children: ReactNode }) {
+  const [playerState, setPlayerState] = useState<PlayerState>({
     currentTrack: null,
     isPlaying: false,
     currentTime: 0,
     duration: 0,
     volume: 1,
-    muted: false,
     shuffle: false,
     repeat: 'none'
   });
   
-  const [seekTime, setSeekTime] = useState<number | undefined>(undefined);
   const [queue, setQueue] = useState<Track[]>([]);
   const [playlists] = useState<Playlist[]>([
     { id: '1', name: 'Chill Vibes', tracks: [] },
@@ -120,24 +116,13 @@ export function MusicProvider({ children }: { children: ReactNode }) {  const [p
       }
     }
   };
+
   const seekTo = (time: number) => {
-    console.log('Seeking to:', time);
-    setSeekTime(time);
     setPlayerState(prev => ({ ...prev, currentTime: time }));
-    
-    // Clear seekTime after a short delay to avoid continuous seeking
-    setTimeout(() => {
-      setSeekTime(undefined);
-    }, 100);
-  };
-  const setVolume = (volume: number) => {
-    console.log('Setting volume to:', volume);
-    setPlayerState(prev => ({ ...prev, volume: Math.max(0, Math.min(1, volume)) }));
   };
 
-  const toggleMute = () => {
-    console.log('Toggling mute');
-    setPlayerState(prev => ({ ...prev, muted: !prev.muted }));
+  const setVolume = (volume: number) => {
+    setPlayerState(prev => ({ ...prev, volume }));
   };
 
   const toggleShuffle = () => {
@@ -157,7 +142,9 @@ export function MusicProvider({ children }: { children: ReactNode }) {  const [p
 
   const clearQueue = () => {
     setQueue([]);
-  };  const value: MusicContextType = {
+  };
+
+  const value: MusicContextType = {
     playerState,
     queue,
     playlists,
@@ -168,13 +155,11 @@ export function MusicProvider({ children }: { children: ReactNode }) {  const [p
     previousTrack,
     seekTo,
     setVolume,
-    toggleMute,
     toggleShuffle,
     toggleRepeat,
     addToQueue,
     clearQueue,
-    updateTime,
-    seekTime
+    updateTime
   };
 
   return (
