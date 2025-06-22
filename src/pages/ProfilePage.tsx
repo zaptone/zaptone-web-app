@@ -49,8 +49,7 @@ export function ProfilePage() {
         title: "Copied to clipboard",
         description: "Public key copied successfully",
       });
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
+      setTimeout(() => setCopied(false), 2000);    } catch {
       toast({
         title: "Failed to copy",
         description: "Could not copy to clipboard",

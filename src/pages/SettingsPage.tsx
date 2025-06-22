@@ -61,7 +61,7 @@ export function SettingsPage() {
 
   const [newRelay, setNewRelay] = useState('');
 
-  const updateSetting = (key: string, value: any) => {
+  const updateSetting = (key: string, value: boolean | string | number | number[]) => {
     setSettings(prev => ({ ...prev, [key]: value }));
     toast({
       title: "Setting updated",
