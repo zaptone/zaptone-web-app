@@ -6,12 +6,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { 
-  Zap,   Crown, 
+  Zap, 
+  Crown, 
   Star, 
   Check, 
   Sparkles,
   Shield,
-  Infinity as InfinityIcon,
+  Infinity,
   Globe,
   Mail,
   Copy,
@@ -521,7 +522,7 @@ export function PremiumPage() {
               </div>
             </div>
             <div className="flex items-center gap-3 p-4 rounded-lg border">
-              <InfinityIcon className="w-8 h-8 text-blue-500" />
+              <Infinity className="w-8 h-8 text-blue-500" />
               <div>
                 <h4 className="font-medium">Global</h4>
                 <p className="text-sm text-muted-foreground">Works anywhere</p>

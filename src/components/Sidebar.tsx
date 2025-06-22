@@ -52,12 +52,17 @@ export function Sidebar({ className = '' }: SidebarProps) {
     { name: 'Search', href: '/search', icon: Search, description: 'Find songs, artists' },
     { name: 'Library', href: '/library', icon: Music2, description: 'Your collection' },
     { name: 'Upload', href: '/upload', icon: Upload, description: 'Share your music' },
-    { name: 'Liked Songs', href: '/liked', icon: Heart, description: 'Your favorites' },  ];
+    { name: 'Liked Songs', href: '/liked', icon: Heart, description: 'Your favorites' },
+  ];
+
+  const topMenu = [
+    { name: 'Live Stream', href: '/live', icon: Video, description: 'Go live' },
+    { name: 'Store', href: '/store', icon: ShoppingBag, description: 'Merchandise' },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Track performance' },
+  ];
   const discover = [
     { name: 'Live Stream', href: '/live', icon: Video },
-    { name: 'Live Streaming', href: '/live-streaming', icon: Video },
     { name: 'Store', href: '/store', icon: ShoppingBag },
-    { name: 'Merchandise', href: '/merchandise', icon: ShoppingBag },
     { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Trending', href: '/trending', icon: TrendingUp },
     { name: 'Radio', href: '/radio', icon: Radio },
@@ -82,7 +87,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
   const userPicture = metadata?.picture;  return (
     <div className={`flex flex-col bg-gradient-to-b from-muted/40 to-muted/20 border-r border-border/50 ${className}`} style={{ height: '100%' }}>      {/* Header - Fixed at top */}
       <div className="p-6 border-b border-border/30" style={{ flexShrink: 0 }}>
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
               <Zap className="w-6 h-6 text-white" />
@@ -95,6 +100,26 @@ export function Sidebar({ className = '' }: SidebarProps) {
             </div>
           </div>
           <ThemeToggle />
+        </div>
+        
+        {/* Top Menu */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2">
+          {topMenu.map((item) => (
+            <Button
+              key={item.name}
+              variant={isActive(item.href) ? "default" : "outline"}
+              size="sm"
+              className={`flex items-center gap-2 whitespace-nowrap ${
+                isActive(item.href) 
+                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' 
+                  : 'hover:bg-muted'
+              }`}
+              onClick={() => navigate(item.href)}
+            >
+              <item.icon className="w-4 h-4" />
+              {item.name}
+            </Button>
+          ))}
         </div>
       </div>
 

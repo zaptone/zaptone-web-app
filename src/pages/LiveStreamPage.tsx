@@ -7,11 +7,15 @@ import {
   Mic,
   Users,
   Zap,
+  Heart,
   MessageCircle,
   Settings,
   Camera,
   MicOff,
   VideoOff,
+  Monitor,
+  Wifi,
+  WifiOff,
   Play,
   Square
 } from 'lucide-react';

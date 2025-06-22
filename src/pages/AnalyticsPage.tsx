@@ -11,6 +11,7 @@ import {
   Download,
   Zap,
   Calendar,
+  Clock,
   Music,
   MapPin,
   Eye,

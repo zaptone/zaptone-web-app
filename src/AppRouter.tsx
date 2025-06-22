@@ -20,8 +20,6 @@ import { AnalyticsPage } from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 import { LiveStreamPage } from "./pages/LiveStreamPage";
 import { StorePage } from "./pages/StorePage";
-import { LiveStreamingPage } from "./pages/LiveStreamingPage";
-import { MerchandiseStorePage } from "./pages/MerchandiseStorePage";
 
 export function AppRouter() {
   return (
@@ -32,10 +30,9 @@ export function AppRouter() {
           <Route path="/search" element={<SearchPage />} />
           <Route path="/library" element={<LibraryPage />} />
           <Route path="/upload" element={<UploadPage />} />
-          <Route path="/liked" element={<LikedSongsPage />} />          <Route path="/live" element={<LiveStreamPage />} />
-          <Route path="/live-streaming" element={<LiveStreamingPage />} />
+          <Route path="/liked" element={<LikedSongsPage />} />
+          <Route path="/live" element={<LiveStreamPage />} />
           <Route path="/store" element={<StorePage />} />
-          <Route path="/merchandise" element={<MerchandiseStorePage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/trending" element={<TrendingPage />} />
           <Route path="/radio" element={<RadioPage />} />
