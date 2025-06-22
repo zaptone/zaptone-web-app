@@ -35,6 +35,7 @@ const NostrProvider: React.FC<NostrProviderProps> = (props) => {
       reqRouter(filters) {
         return new Map([[relayUrl.current, filters]]);
       },
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       eventRouter(_event: NostrEvent) {
         // Publish to the selected relay
         const allRelays = new Set<string>([relayUrl.current]);

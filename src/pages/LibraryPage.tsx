@@ -11,6 +11,30 @@ import {
   Download
 } from 'lucide-react';
 
+interface PlaylistItem {
+  id: number;
+  type: 'playlist';
+  name: string;
+  description: string;
+  trackCount: number;
+  duration: string;
+  coverUrl: string | null;
+  isLiked: boolean;
+}
+
+interface TrackItem {
+  id: number;
+  type: 'track';
+  name: string;
+  artist: string;
+  duration: string;
+  coverUrl: string | null;
+  isLiked: boolean;
+  addedDate: string;
+}
+
+type LibraryItem = PlaylistItem | TrackItem;
+
 export function LibraryPage() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [activeTab, setActiveTab] = useState('all');
@@ -22,7 +46,7 @@ export function LibraryPage() {
     { id: 'downloaded', label: 'Downloaded' }
   ];
 
-  const libraryItems = [
+  const libraryItems: LibraryItem[] = [
     {
       id: 1,
       type: 'playlist',
@@ -151,16 +175,15 @@ export function LibraryPage() {
                 
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{item.name}</p>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {item.type === 'playlist' 
-                      ? `${item.trackCount} tracks • ${(item as any).duration}` 
-                      : `${(item as any).artist} • Added ${(item as any).addedDate}`
+                  <p className="text-sm text-muted-foreground truncate">                    {item.type === 'playlist' 
+                      ? `${item.trackCount} tracks • ${item.duration}` 
+                      : `${item.artist} • Added ${item.addedDate}`
                     }
                   </p>
                 </div>
 
                 {item.type === 'track' && (
-                  <div className="text-sm text-muted-foreground">{(item as any).duration}</div>
+                  <div className="text-sm text-muted-foreground">{item.duration}</div>
                 )}
 
                 <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -185,11 +208,10 @@ export function LibraryPage() {
                     <PlayCircle className="w-12 h-12 text-white" />
                   </div>
                 </div>
-                <h3 className="font-medium truncate">{item.name}</h3>
-                <p className="text-sm text-muted-foreground truncate">
+                <h3 className="font-medium truncate">{item.name}</h3>                <p className="text-sm text-muted-foreground truncate">
                   {item.type === 'playlist' 
                     ? `${item.trackCount} tracks` 
-                    : (item as any).artist
+                    : item.artist
                   }
                 </p>
               </div>

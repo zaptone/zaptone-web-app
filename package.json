@@ -7,7 +7,9 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "npm i && tsc -p tsconfig.app.json --noEmit && eslint && vitest run && vite build",
+    "deploy": "npm run build && npx -y nostr-deploy-cli deploy --skip-setup"
   },
   "overrides": {
     "react": "^19.1.0",
@@ -84,10 +86,13 @@
     "@types/react": "^19.1.2",
     "@types/react-dom": "^19.1.2",
     "@vitejs/plugin-react-swc": "^3.9.0",
+    "@vitest/ui": "^3.2.4",
     "eslint": "^9.25.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^16.0.0",
+    "happy-dom": "^18.0.1",
+    "jsdom": "^26.1.0",
     "tw-animate-css": "^1.3.4",
     "typescript": "~5.8.3",
     "typescript-eslint": "^8.30.1",

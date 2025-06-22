@@ -29,10 +29,10 @@ export const EditProfileForm: React.FC = () => {
   const { mutateAsync: publishEvent, isPending } = useNostrPublish();
   const { mutateAsync: uploadFile, isPending: isUploading } = useUploadFile();
   const { toast } = useToast();
-
   // Initialize the form with default values
   const form = useForm<NostrMetadata>({
-    resolver: zodResolver(n.metadata()),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(n.metadata() as any),
     defaultValues: {
       name: '',
       about: '',
@@ -61,9 +61,8 @@ export const EditProfileForm: React.FC = () => {
 
   // Handle file uploads for profile picture and banner
   const uploadPicture = async (file: File, field: 'picture' | 'banner') => {
-    try {
-      // The first tuple in the array contains the URL
-      const [[_, url]] = await uploadFile(file);
+    try {      // The first tuple in the array contains the URL
+      const [[, url]] = await uploadFile(file);
       form.setValue(field, url);
       toast({
         title: 'Success',
@@ -98,12 +97,12 @@ export const EditProfileForm: React.FC = () => {
         if (data[key] === '') {
           delete data[key];
         }
-      }
-
-      // Publish the metadata event (kind 0)
+      }      // Publish the metadata event (kind 0)
       await publishEvent({
         kind: 0,
         content: JSON.stringify(data),
+        created_at: Math.floor(Date.now() / 1000),
+        tags: [],
       });
 
       // Invalidate queries to refresh the data

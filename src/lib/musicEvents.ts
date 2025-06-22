@@ -1,3 +1,5 @@
+import type { NostrEvent } from '@nostrify/nostrify';
+
 // Music-specific Nostr event kinds as per ZapTone custom NIPs
 export const MUSIC_EVENT_KINDS = {
   MUSIC_TRACK: 31808,
@@ -124,7 +126,7 @@ export class MusicEventBuilder {
 
 // Helper functions for parsing music events
 export class MusicEventParser {
-  static parseTrackEvent(event: any): {
+  static parseTrackEvent(event: NostrEvent): {
     id: string;
     title: string;
     artist: string;
@@ -141,11 +143,11 @@ export class MusicEventParser {
   } | null {
     if (event.kind !== MUSIC_EVENT_KINDS.MUSIC_TRACK) return null;
 
-    const getTag = (name: string) => event.tags.find((tag: string[]) => tag[0] === name)?.[1];
-
-    const duration = parseInt(getTag('duration') || '0');
-    const price = getTag('price') ? parseInt(getTag('price')) : undefined;
-    const trackNumber = getTag('track_number') ? parseInt(getTag('track_number')) : undefined;
+    const getTag = (name: string) => event.tags.find((tag: string[]) => tag[0] === name)?.[1];    const duration = parseInt(getTag('duration') || '0');
+    const priceTag = getTag('price');
+    const price = priceTag ? parseInt(priceTag) : undefined;
+    const trackNumberTag = getTag('track_number');
+    const trackNumber = trackNumberTag ? parseInt(trackNumberTag) : undefined;
 
     return {
       id: getTag('d') || '',
@@ -164,7 +166,7 @@ export class MusicEventParser {
     };
   }
 
-  static parseAlbumEvent(event: any): {
+  static parseAlbumEvent(event: NostrEvent): {
     id: string;
     title: string;
     artist: string;
@@ -192,7 +194,7 @@ export class MusicEventParser {
     };
   }
 
-  static parsePlaylistEvent(event: any): {
+  static parsePlaylistEvent(event: NostrEvent): {
     id: string;
     title: string;
     creator: string;
