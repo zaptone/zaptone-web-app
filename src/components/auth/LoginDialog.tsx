@@ -106,7 +106,7 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
 
         <div className='px-6 py-8 space-y-6'>
           <Tabs defaultValue={'nostr' in window ? 'extension' : 'key'} className='w-full'>
-            <TabsList className='grid grid-cols-3 mb-6'>
+            <TabsList className='grid w-full grid-cols-3 mb-6'>
               <TabsTrigger value='extension'>Extension</TabsTrigger>
               <TabsTrigger value='key'>Nsec</TabsTrigger>
               <TabsTrigger value='bunker'>Bunker</TabsTrigger>

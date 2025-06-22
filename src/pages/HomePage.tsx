@@ -19,8 +19,10 @@ import {
   ShoppingBag,
   Heart
 } from 'lucide-react';
+import { useState } from 'react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useMusic } from '@/hooks/useMusic';
+import LoginDialog from '@/components/auth/LoginDialog';
 
 // Sample tracks using the music.mp3 file
 const SAMPLE_TRACKS = [
@@ -61,6 +63,7 @@ const SAMPLE_TRACKS = [
 export default function HomePage() {
   const { user } = useCurrentUser();
   const { playTrack, playerState, pauseTrack, resumeTrack } = useMusic();
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
 
   const handlePlayTrack = (track: typeof SAMPLE_TRACKS[0]) => {
     const isCurrentTrack = playerState.currentTrack?.id === track.id;
@@ -315,16 +318,23 @@ export default function HomePage() {
                 <h2 className="text-2xl font-bold mb-4">Join ZapTone Today</h2>
                 <p className="text-white/90 mb-6">
                   Connect with your Nostr identity to upload music, create playlists, and support artists.
-                </p>
-                <Button size="lg" className="bg-white text-purple-600 hover:bg-white/90">
+                </p>                <Button 
+                  size="lg" 
+                  className="bg-white text-purple-600 hover:bg-white/90"
+                  onClick={() => setShowLoginDialog(true)}
+                >
                   Sign in with Nostr
                 </Button>
               </CardContent>
             </Card>
-          </section>
-        )}
+          </section>        )}
 
-      </div>
+      </div>      {/* Login Dialog */}
+      <LoginDialog 
+        isOpen={showLoginDialog} 
+        onClose={() => setShowLoginDialog(false)}
+        onLogin={() => setShowLoginDialog(false)}
+      />
     </div>
   );
 }

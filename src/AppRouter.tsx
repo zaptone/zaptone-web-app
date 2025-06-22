@@ -20,6 +20,7 @@ import { AnalyticsPage } from "./pages/AnalyticsPage";
 import NotFound from "./pages/NotFound";
 import { LiveStreamPage } from "./pages/LiveStreamPage";
 import { StorePage } from "./pages/StorePage";
+import { PlaylistPage } from "./pages/PlaylistPage";
 
 export function AppRouter() {
   return (
@@ -39,8 +40,9 @@ export function AppRouter() {
           <Route path="/charts" element={<ChartsPage />} />
           <Route path="/new" element={<NewReleasesPage />} />
           <Route path="/recent" element={<RecentlyPlayedPage />} />
-          <Route path="/downloads" element={<DownloadedPage />} />
+          <Route path="/downloads" element={<DownloadedPage />} />          
           <Route path="/for-you" element={<MadeForYouPage />} />
+          <Route path="/playlist/:id" element={<PlaylistPage />} />
           <Route path="/profile" element={<ProfilePage />} />
           <Route path="/premium" element={<PremiumPage />} />
           <Route path="/settings" element={<SettingsPage />} />
