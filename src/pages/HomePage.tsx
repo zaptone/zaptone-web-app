@@ -7,7 +7,17 @@ import {
   TrendingUp,
   PlayCircle,
   Pause,
-  Sparkles
+  Sparkles,
+  Zap,
+  Globe,
+  Radio,
+  Mic,
+  Headphones,
+  Shield,
+  Palette,
+  BarChart3,
+  ShoppingBag,
+  Heart
 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useMusic } from '@/hooks/useMusic';
@@ -82,7 +92,201 @@ export default function HomePage() {
           <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Discover music, support artists directly, and experience decentralized music streaming.
           </p>
-        </section>        {/* Music Player Section */}
+        </section>
+
+        {/* Features Section */}
+        <section className="mb-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold mb-4">Platform Features</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Experience the future of music with our decentralized platform that puts artists and fans first.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Decentralized Platform */}
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
+                    <Music className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold">Decentralized Platform</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Own your music completely. No intermediaries, no gatekeepers. Your art, your rules, your revenue.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Lightning Payments */}
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
+                    <Zap className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold">Lightning Payments</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Get paid instantly via Bitcoin Lightning Network. Fans can send you Zaps directly with zero intermediaries and minimal fees.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Global Reach */}
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                    <Globe className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold">Global Reach</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Connect with fans worldwide without geographical restrictions. Borderless music distribution.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Online Radio */}
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+                    <Radio className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold">Online Radio</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Create your own decentralized radio stations. Curate playlists and broadcast to global audiences 24/7.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Live Streaming */}
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center">
+                    <Mic className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold">Live Streaming</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Perform live concerts and interact with fans in real-time. Receive instant Lightning tips during performances.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* HD Streaming */}
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <Headphones className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold">HD Streaming</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Experience crystal-clear audio with lossless streaming. Support for high-resolution formats up to 24-bit/192kHz.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Secure & Private */}
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-gray-600 to-gray-800 rounded-lg flex items-center justify-center">
+                    <Shield className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold">Secure & Private</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Nostr protocol-powered security ensures your content and data remain protected and under your control.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Creative Freedom */}
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center">
+                    <Palette className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold">Creative Freedom</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Express yourself without censorship. Upload, share, and monetize any genre, any style, any vision.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Real-time Analytics */}
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold">Real-time Analytics</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Track your performance with detailed insights. Understand your audience and optimize your strategy.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Merchandise Store */}
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
+                    <ShoppingBag className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold">Merchandise Store</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Sell your physical products directly to fans. T-shirts, vinyl records, artwork, and exclusive collectibles.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Buy The Art */}
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
+                    <Palette className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold">Buy The Art</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Purchase original artwork, limited editions, and signed memorabilia directly from your favorite artists.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Direct Support */}
+            <Card className="group hover:shadow-lg transition-all duration-300">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg flex items-center justify-center">
+                    <Heart className="w-5 h-5 text-white" />
+                  </div>
+                  <h3 className="font-semibold">Direct Support</h3>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Support artists directly through merchandise sales, exclusive content, and special fan experiences.
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        {/* Music Player Section */}
         <section className="mb-16">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
@@ -101,8 +305,7 @@ export default function HomePage() {
                 isCurrent={playerState.currentTrack?.id === track.id}
               />
             ))}
-          </div>
-        </section>
+          </div>        </section>
 
         {/* Welcome Message */}
         {!user && (

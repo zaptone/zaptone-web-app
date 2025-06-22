@@ -21,7 +21,10 @@ import {
   Download,
   Headphones,
   Zap,
-  LogOut
+  LogOut,
+  Video,
+  ShoppingBag,
+  BarChart3
 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useLoginActions } from '@/hooks/useLoginActions';
@@ -44,17 +47,18 @@ export function Sidebar({ className = '' }: SidebarProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, metadata } = useCurrentUser();
-  const { logout } = useLoginActions();  const [showLogin, setShowLogin] = useState(false);
-
-  const navigation = [
+  const { logout } = useLoginActions();  const [showLogin, setShowLogin] = useState(false);  const navigation = [
     { name: 'Home', href: '/', icon: Home, description: 'Discover music' },
     { name: 'Search', href: '/search', icon: Search, description: 'Find songs, artists' },
     { name: 'Library', href: '/library', icon: Music2, description: 'Your collection' },
     { name: 'Upload', href: '/upload', icon: Upload, description: 'Share your music' },
-    { name: 'Liked Songs', href: '/liked', icon: Heart, description: 'Your favorites' },
-  ];
-
+    { name: 'Liked Songs', href: '/liked', icon: Heart, description: 'Your favorites' },  ];
   const discover = [
+    { name: 'Live Stream', href: '/live', icon: Video },
+    { name: 'Live Streaming', href: '/live-streaming', icon: Video },
+    { name: 'Store', href: '/store', icon: ShoppingBag },
+    { name: 'Merchandise', href: '/merchandise', icon: ShoppingBag },
+    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Trending', href: '/trending', icon: TrendingUp },
     { name: 'Radio', href: '/radio', icon: Radio },
     { name: 'Charts', href: '/charts', icon: Disc3 },
@@ -76,8 +80,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
 
   const userDisplayName = metadata?.name || `User ${user?.pubkey.slice(0, 8)}`;
   const userPicture = metadata?.picture;  return (
-    <div className={`flex flex-col bg-gradient-to-b from-muted/40 to-muted/20 border-r border-border/50 ${className}`} style={{ height: '100%' }}>
-      {/* Header - Fixed at top */}
+    <div className={`flex flex-col bg-gradient-to-b from-muted/40 to-muted/20 border-r border-border/50 ${className}`} style={{ height: '100%' }}>      {/* Header - Fixed at top */}
       <div className="p-6 border-b border-border/30" style={{ flexShrink: 0 }}>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
