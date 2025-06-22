@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -17,9 +19,9 @@ import {
   Palette,
   BarChart3,
   ShoppingBag,
-  Heart
+  Heart,
+  Video
 } from 'lucide-react';
-import { useState } from 'react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useMusic } from '@/hooks/useMusic';
 import LoginDialog from '@/components/auth/LoginDialog';
@@ -64,6 +66,7 @@ export default function HomePage() {
   const { user } = useCurrentUser();
   const { playTrack, playerState, pauseTrack, resumeTrack } = useMusic();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const navigate = useNavigate();
 
   const handlePlayTrack = (track: typeof SAMPLE_TRACKS[0]) => {
     const isCurrentTrack = playerState.currentTrack?.id === track.id;
@@ -91,10 +94,39 @@ export default function HomePage() {
           <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             ZapTone
           </h1>
-          
-          <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
             Discover music, support artists directly, and experience decentralized music streaming.
           </p>
+
+          {/* Quick Action Buttons */}
+          <div className="flex flex-wrap justify-center gap-4 mb-8">
+            <Button 
+              size="lg" 
+              className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white shadow-lg"
+              onClick={() => navigate('/live')}
+            >
+              <Video className="w-5 h-5 mr-2" />
+              Go Live
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="border-purple-200 hover:bg-purple-50 dark:border-purple-800 dark:hover:bg-purple-950/20 shadow-lg"
+              onClick={() => navigate('/store')}
+            >
+              <ShoppingBag className="w-5 h-5 mr-2" />
+              Store
+            </Button>
+            <Button 
+              size="lg" 
+              variant="outline"
+              className="border-blue-200 hover:bg-blue-50 dark:border-blue-800 dark:hover:bg-blue-950/20 shadow-lg"
+              onClick={() => navigate('/analytics')}
+            >
+              <BarChart3 className="w-5 h-5 mr-2" />
+              Analytics
+            </Button>
+          </div>
         </section>
 
         {/* Features Section */}

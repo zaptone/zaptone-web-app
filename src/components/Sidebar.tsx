@@ -21,10 +21,7 @@ import {
   Download,
   Headphones,
   Zap,
-  LogOut,
-  Video,
-  ShoppingBag,
-  BarChart3
+  LogOut
 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useLoginActions } from '@/hooks/useLoginActions';
@@ -54,16 +51,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
     { name: 'Upload', href: '/upload', icon: Upload, description: 'Share your music' },
     { name: 'Liked Songs', href: '/liked', icon: Heart, description: 'Your favorites' },
   ];
-
-  const topMenu = [
-    { name: 'Live Stream', href: '/live', icon: Video, description: 'Go live' },
-    { name: 'Store', href: '/store', icon: ShoppingBag, description: 'Merchandise' },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3, description: 'Track performance' },
-  ];
   const discover = [
-    { name: 'Live Stream', href: '/live', icon: Video },
-    { name: 'Store', href: '/store', icon: ShoppingBag },
-    { name: 'Analytics', href: '/analytics', icon: BarChart3 },
     { name: 'Trending', href: '/trending', icon: TrendingUp },
     { name: 'Radio', href: '/radio', icon: Radio },
     { name: 'Charts', href: '/charts', icon: Disc3 },
@@ -98,28 +86,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
               </h1>
               <p className="text-xs text-muted-foreground">Decentralized Music</p>
             </div>
-          </div>
-          <ThemeToggle />
-        </div>
-        
-        {/* Top Menu */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2">
-          {topMenu.map((item) => (
-            <Button
-              key={item.name}
-              variant={isActive(item.href) ? "default" : "outline"}
-              size="sm"
-              className={`flex items-center gap-2 whitespace-nowrap ${
-                isActive(item.href) 
-                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white' 
-                  : 'hover:bg-muted'
-              }`}
-              onClick={() => navigate(item.href)}
-            >
-              <item.icon className="w-4 h-4" />
-              {item.name}
-            </Button>
-          ))}
+          </div>          <ThemeToggle />
         </div>
       </div>
 

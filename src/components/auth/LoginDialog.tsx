@@ -93,122 +93,207 @@ const LoginDialog: React.FC<LoginDialogProps> = ({ isOpen, onClose, onLogin, onS
       onSignup();
     }
   };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className='sm:max-w-md p-0 overflow-hidden rounded-2xl'>
-        <DialogHeader className='px-6 pt-6 pb-0 relative'>
-          <DialogTitle className='text-xl font-semibold text-center'>Log in</DialogTitle>
-          <DialogDescription className='text-center text-muted-foreground mt-2'>
-            Access your account securely with your preferred method
+      <DialogContent className='sm:max-w-lg p-0 overflow-hidden rounded-3xl border-0 shadow-2xl bg-gradient-to-br from-white to-gray-50 dark:from-gray-900 dark:to-gray-800'>
+        <DialogHeader className='px-8 pt-8 pb-2 relative'>
+          <div className="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <Shield className="w-8 h-8 text-white" />
+          </div>
+          <DialogTitle className='text-2xl font-bold text-center bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent'>
+            Welcome to ZapTone
+          </DialogTitle>
+          <DialogDescription className='text-center text-muted-foreground mt-2 text-base'>
+            Connect with your Nostr identity to unlock the full experience
           </DialogDescription>
         </DialogHeader>
 
-        <div className='px-6 py-8 space-y-6'>
+        <div className='px-8 py-6 space-y-6'>
           <Tabs defaultValue={'nostr' in window ? 'extension' : 'key'} className='w-full'>
-            <TabsList className='grid w-full grid-cols-3 mb-6'>
-              <TabsTrigger value='extension'>Extension</TabsTrigger>
-              <TabsTrigger value='key'>Nsec</TabsTrigger>
-              <TabsTrigger value='bunker'>Bunker</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value='extension' className='space-y-4'>
-              <div className='text-center p-4 rounded-lg bg-gray-50 dark:bg-gray-800'>
-                <Shield className='w-12 h-12 mx-auto mb-3 text-primary' />
-                <p className='text-sm text-gray-600 dark:text-gray-300 mb-4'>
-                  Login with one click using the browser extension
+            <TabsList className='grid w-full grid-cols-3 mb-8 bg-gray-100 dark:bg-gray-800 p-1 rounded-2xl h-12'>
+              <TabsTrigger 
+                value='extension' 
+                className='rounded-xl font-medium data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-purple-600 transition-all duration-200'
+              >
+                Extension
+              </TabsTrigger>
+              <TabsTrigger 
+                value='key' 
+                className='rounded-xl font-medium data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-purple-600 transition-all duration-200'
+              >
+                Private Key
+              </TabsTrigger>
+              <TabsTrigger 
+                value='bunker' 
+                className='rounded-xl font-medium data-[state=active]:bg-white data-[state=active]:shadow-md data-[state=active]:text-purple-600 transition-all duration-200'
+              >
+                Bunker
+              </TabsTrigger>
+            </TabsList>            <TabsContent value='extension' className='space-y-6 mt-6'>
+              <div className='text-center p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/20 dark:to-indigo-950/20 border border-purple-100 dark:border-purple-800'>
+                <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                  <Shield className='w-8 h-8 text-white' />
+                </div>
+                <h3 className="font-semibold text-lg mb-2 text-gray-900 dark:text-white">Browser Extension</h3>
+                <p className='text-sm text-gray-600 dark:text-gray-300 mb-6 leading-relaxed'>
+                  Secure one-click authentication using your Nostr browser extension. The fastest and safest way to connect.
                 </p>
                 <Button
-                  className='w-full rounded-full py-6'
+                  className='w-full rounded-2xl py-4 h-12 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium'
                   onClick={handleExtensionLogin}
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Logging in...' : 'Login with Extension'}
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Connecting...
+                    </div>
+                  ) : (
+                    'Connect with Extension'
+                  )}
                 </Button>
-              </div>
-            </TabsContent>
-
-            <TabsContent value='key' className='space-y-4'>
-              <div className='space-y-4'>
-                <div className='space-y-2'>
-                  <label htmlFor='nsec' className='text-sm font-medium text-gray-700 dark:text-gray-400'>
-                    Enter your nsec
-                  </label>
-                  <Input
-                    id='nsec'
-                    value={nsec}
-                    onChange={(e) => setNsec(e.target.value)}
-                    className='rounded-lg border-gray-300 dark:border-gray-700 focus-visible:ring-primary'
-                    placeholder='nsec1...'
-                  />
-                </div>
-
-                <div className='text-center'>
-                  <p className='text-sm mb-2 text-gray-600 dark:text-gray-400'>Or upload a key file</p>
-                  <input
-                    type='file'
-                    accept='.txt'
-                    className='hidden'
-                    ref={fileInputRef}
-                    onChange={handleFileUpload}
-                  />
-                  <Button
-                    variant='outline'
-                    className='w-full dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700'
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <Upload className='w-4 h-4 mr-2' />
-                    Upload Nsec File
-                  </Button>
-                </div>
-
-                <Button
-                  className='w-full rounded-full py-6 mt-4'
-                  onClick={handleKeyLogin}
-                  disabled={isLoading || !nsec.trim()}
-                >
-                  {isLoading ? 'Verifying...' : 'Login with Nsec'}
-                </Button>
-              </div>
-            </TabsContent>
-
-            <TabsContent value='bunker' className='space-y-4'>
-              <div className='space-y-2'>
-                <label htmlFor='bunkerUri' className='text-sm font-medium text-gray-700 dark:text-gray-400'>
-                  Bunker URI
-                </label>
-                <Input
-                  id='bunkerUri'
-                  value={bunkerUri}
-                  onChange={(e) => setBunkerUri(e.target.value)}
-                  className='rounded-lg border-gray-300 dark:border-gray-700 focus-visible:ring-primary'
-                  placeholder='bunker://'
-                />
-                {bunkerUri && !bunkerUri.startsWith('bunker://') && (
-                  <p className='text-red-500 text-xs'>URI must start with bunker://</p>
+                {!('nostr' in window) && (
+                  <p className='text-xs text-amber-600 dark:text-amber-400 mt-3'>
+                    No extension detected. Please install a Nostr extension like nos2x or Alby.
+                  </p>
                 )}
               </div>
+            </TabsContent>            <TabsContent value='key' className='space-y-6 mt-6'>
+              <div className='space-y-6 p-6 rounded-2xl bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 border border-blue-100 dark:border-blue-800'>
+                <div className="text-center mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <Shield className='w-8 h-8 text-white' />
+                  </div>
+                  <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Private Key Login</h3>
+                  <p className='text-sm text-gray-600 dark:text-gray-300 mt-2'>
+                    Enter your nsec private key to securely access your account
+                  </p>
+                </div>
 
-              <Button
-                className='w-full rounded-full py-6'
-                onClick={handleBunkerLogin}
-                disabled={isLoading || !bunkerUri.trim() || !bunkerUri.startsWith('bunker://')}
-              >
-                {isLoading ? 'Connecting...' : 'Login with Bunker'}
-              </Button>
-            </TabsContent>
-          </Tabs>
+                <div className='space-y-4'>
+                  <div className='space-y-2'>
+                    <label htmlFor='nsec' className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                      Nostr Private Key (nsec)
+                    </label>
+                    <Input
+                      id='nsec'
+                      type="password"
+                      value={nsec}
+                      onChange={(e) => setNsec(e.target.value)}
+                      className='rounded-xl border-gray-300 dark:border-gray-600 focus-visible:ring-blue-500 focus-visible:border-blue-500 h-12 bg-white/50 dark:bg-gray-900/50'
+                      placeholder='nsec1...'
+                    />
+                  </div>
 
-          <div className='text-center text-sm'>
-            <p className='text-gray-600 dark:text-gray-400'>
-              Don't have an account?{' '}
-              <button
-                onClick={handleSignupClick}
-                className='text-primary hover:underline font-medium'
-              >
-                Sign up
-              </button>
-            </p>
+                  <div className='relative'>
+                    <div className='absolute inset-0 flex items-center'>
+                      <span className='w-full border-t border-gray-300 dark:border-gray-600' />
+                    </div>
+                    <div className='relative flex justify-center text-xs uppercase'>
+                      <span className='bg-white dark:bg-gray-800 px-2 text-gray-500'>Or</span>
+                    </div>
+                  </div>
+
+                  <div className='text-center'>
+                    <input
+                      type='file'
+                      accept='.txt,.json'
+                      className='hidden'
+                      ref={fileInputRef}
+                      onChange={handleFileUpload}
+                    />
+                    <Button
+                      variant='outline'
+                      className='w-full rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-600 bg-white/50 dark:bg-gray-900/50 hover:bg-blue-50 dark:hover:bg-blue-950/20 h-12 transition-all duration-200'
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      <Upload className='w-4 h-4 mr-2' />
+                      Upload Key File
+                    </Button>
+                  </div>
+
+                  <Button
+                    className='w-full rounded-2xl py-4 h-12 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium'
+                    onClick={handleKeyLogin}
+                    disabled={isLoading || !nsec.trim()}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Verifying...
+                      </div>
+                    ) : (
+                      'Access Account'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>            <TabsContent value='bunker' className='space-y-6 mt-6'>
+              <div className='space-y-6 p-6 rounded-2xl bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 border border-emerald-100 dark:border-emerald-800'>
+                <div className="text-center mb-4">
+                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+                    <Shield className='w-8 h-8 text-white' />
+                  </div>
+                  <h3 className="font-semibold text-lg text-gray-900 dark:text-white">Remote Signer</h3>
+                  <p className='text-sm text-gray-600 dark:text-gray-300 mt-2'>
+                    Connect using a remote signing service for enhanced security
+                  </p>
+                </div>
+
+                <div className='space-y-4'>
+                  <div className='space-y-2'>
+                    <label htmlFor='bunkerUri' className='text-sm font-medium text-gray-700 dark:text-gray-300'>
+                      Bunker Connection URI
+                    </label>
+                    <Input
+                      id='bunkerUri'
+                      value={bunkerUri}
+                      onChange={(e) => setBunkerUri(e.target.value)}
+                      className='rounded-xl border-gray-300 dark:border-gray-600 focus-visible:ring-emerald-500 focus-visible:border-emerald-500 h-12 bg-white/50 dark:bg-gray-900/50'
+                      placeholder='bunker://...'
+                    />
+                    {bunkerUri && !bunkerUri.startsWith('bunker://') && (
+                      <div className='flex items-center gap-2 text-red-500 text-xs mt-2'>
+                        <div className="w-1 h-1 bg-red-500 rounded-full" />
+                        URI must start with "bunker://"
+                      </div>
+                    )}
+                  </div>
+
+                  <Button
+                    className='w-full rounded-2xl py-4 h-12 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 shadow-lg hover:shadow-xl transition-all duration-200 font-medium'
+                    onClick={handleBunkerLogin}
+                    disabled={isLoading || !bunkerUri.trim() || !bunkerUri.startsWith('bunker://')}
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        Connecting...
+                      </div>
+                    ) : (
+                      'Connect to Remote Signer'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </TabsContent>          </Tabs>
+
+          <div className='text-center pt-6 border-t border-gray-200 dark:border-gray-700'>
+            <div className="space-y-3">
+              <p className='text-sm text-gray-600 dark:text-gray-400'>
+                New to Nostr?{' '}
+                <button
+                  onClick={handleSignupClick}
+                  className='text-purple-600 hover:text-purple-700 dark:text-purple-400 dark:hover:text-purple-300 font-semibold hover:underline transition-colors duration-200'
+                >
+                  Create your identity
+                </button>
+              </p>
+              <p className='text-xs text-gray-500 dark:text-gray-500 leading-relaxed'>
+                Your keys, your identity, your data. <br />
+                Welcome to the decentralized future of social media.
+              </p>
+            </div>
           </div>
         </div>
       </DialogContent>
