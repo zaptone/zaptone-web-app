@@ -125,14 +125,15 @@ export function MusicLayout({ children }: MusicLayoutProps) {
         {/* Sidebar - Desktop */}
         <div className="hidden lg:block w-64 h-full">
           <Sidebar className="h-full" />
-        </div>
-
-        {/* Mobile Sidebar Overlay */}
+        </div>        {/* Mobile Sidebar Overlay */}
         {mobileMenuOpen && (
           <div className="fixed inset-0 z-50 lg:hidden">
             <div className="absolute inset-0 bg-black/50" onClick={() => setMobileMenuOpen(false)} />
-            <div className="absolute left-0 top-0 h-full w-64 bg-background">
-              <div className="flex items-center justify-between p-4 border-b">
+            <div className="absolute left-0 top-0 w-64 bg-background flex flex-col" 
+                 style={{ 
+                   height: '100vh'
+                 }}>
+              <div className="flex items-center justify-between p-4 border-b flex-shrink-0">
                 <h2 className="text-lg font-semibold">Menu</h2>
                 <Button
                   variant="ghost"
@@ -141,9 +142,16 @@ export function MusicLayout({ children }: MusicLayoutProps) {
                 >
                   <X className="w-4 h-4" />
                 </Button>
-              </div>              <Sidebar 
-                className="border-0 h-[calc(100vh-5rem)]" 
-              />
+              </div>              <div className="flex-1 overflow-hidden">
+                <Sidebar 
+                  className="border-0 h-full"
+                />
+              </div>
+              
+              {/* Spacer for music player if exists */}
+              {playerState.currentTrack && (
+                <div style={{ height: '6rem', flexShrink: 0 }} />
+              )}
             </div>
           </div>
         )}

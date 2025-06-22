@@ -20,8 +20,8 @@ import {
   Clock,
   Download,
   Headphones,
-  Zap,  LogOut,
-  Shield
+  Zap,
+  LogOut
 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useLoginActions } from '@/hooks/useLoginActions';
@@ -75,12 +75,11 @@ export function Sidebar({ className = '' }: SidebarProps) {
   };
 
   const userDisplayName = metadata?.name || `User ${user?.pubkey.slice(0, 8)}`;
-  const userPicture = metadata?.picture;
-  return (
-    <div className={`flex flex-col h-full bg-gradient-to-b from-muted/40 to-muted/20 border-r border-border/50 ${className}`}>
+  const userPicture = metadata?.picture;  return (
+    <div className={`flex flex-col bg-gradient-to-b from-muted/40 to-muted/20 border-r border-border/50 ${className}`} style={{ height: '100%' }}>
       {/* Header - Fixed at top */}
-      <div className="flex-shrink-0 p-6 border-b border-border/30">
-        <div className="flex items-center justify-between mb-4">
+      <div className="p-6 border-b border-border/30" style={{ flexShrink: 0 }}>
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
               <Zap className="w-6 h-6 text-white" />
@@ -94,29 +93,12 @@ export function Sidebar({ className = '' }: SidebarProps) {
           </div>
           <ThemeToggle />
         </div>
+      </div>
 
-        {/* User Info */}
-        {user && (
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-background/50 backdrop-blur-sm border border-border/30">
-            <Avatar className="w-8 h-8 ring-2 ring-purple-500/20">
-              {userPicture && <AvatarImage src={userPicture} />}
-              <AvatarFallback className="bg-gradient-to-br from-purple-500 to-indigo-500 text-white text-xs font-medium">
-                {userDisplayName.slice(0, 2).toUpperCase()}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{userDisplayName}</p>
-              <p className="text-xs text-muted-foreground truncate">Connected</p>
-            </div>
-            <Badge variant="secondary" className="text-xs">
-              <Headphones className="w-3 h-3 mr-1" />
-              Pro
-            </Badge>
-          </div>
-        )}
-      </div>      {/* Scrollable Content - Grows to fill space */}
-      <ScrollArea className="flex-1 px-4 min-h-0">
-        <div className="space-y-6 py-4">
+      {/* Scrollable Content - Takes remaining space but leaves room for profile */}
+      <div style={{ flex: '1', overflow: 'hidden' }}>
+        <ScrollArea className="px-4" style={{ height: '100%' }}>
+          <div className="space-y-6 py-4">
           {/* Main Navigation */}
           <div>
             <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3 px-2">
@@ -214,53 +196,62 @@ export function Sidebar({ className = '' }: SidebarProps) {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </ScrollArea>      {/* Bottom Section - Fixed at bottom */}
-      <div className="flex-shrink-0 p-4 border-t border-border/30 bg-background/50 backdrop-blur-sm">
+          </div>        </div>
+        </ScrollArea>
+      </div>      {/* Bottom Section - Fixed at bottom */}
+      <div className="p-3 border-t border-border/30 bg-background/50 backdrop-blur-sm" style={{ flexShrink: 0 }}>
         {user ? (
-          <div className="space-y-3">
+          <div className="w-full">
             {/* User Profile Section */}
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-background/70 border border-border/30">
-              <Avatar className="w-10 h-10 ring-2 ring-purple-500/20">
+            <div className="flex items-center gap-3 p-3 rounded-xl bg-background/70 border border-border/30 w-full">
+              <Avatar className="w-10 h-10 ring-2 ring-purple-500/20 flex-shrink-0">
                 {userPicture && <AvatarImage src={userPicture} />}
                 <AvatarFallback className="bg-gradient-to-br from-purple-500 to-indigo-500 text-white text-sm font-medium">
                   {userDisplayName.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium truncate">{userDisplayName}</p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {metadata?.nip05 ? (
-                    <span className="flex items-center gap-1">
-                      <Shield className="w-3 h-3" />
-                      {metadata.nip05}
-                    </span>
-                  ) : (
-                    'Connected'
-                  )}
+              <div className="flex-1 min-w-0 pr-2">
+                <div className="flex items-center gap-2 mb-1">
+                  <p className="text-sm font-medium truncate flex-1">{userDisplayName}</p>
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5 bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-600 border-amber-500/30 flex-shrink-0">
+                    <Headphones className="w-3 h-3 mr-1" />
+                    Pro
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Pro Member
                 </p>
               </div>
               
               {/* User Actions Dropdown */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0 flex-shrink-0">
                     <Settings className="w-4 h-4" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-56">
-                  <DropdownMenuLabel>
+                <DropdownMenuContent align="end" className="w-64">                  <DropdownMenuLabel>
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium">{userDisplayName}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium">{userDisplayName}</p>
+                        <Badge variant="secondary" className="text-xs bg-gradient-to-r from-amber-500/20 to-orange-500/20 text-amber-600 border-amber-500/30">
+                          <Headphones className="w-3 h-3 mr-1" />
+                          Pro
+                        </Badge>
+                      </div>
                       <p className="text-xs text-muted-foreground">
                         {user.pubkey.slice(0, 16)}...
                       </p>
                     </div>
                   </DropdownMenuLabel>
-                  <DropdownMenuSeparator />                  <DropdownMenuItem onClick={() => navigate('/profile')}>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => navigate('/profile')}>
                     <User className="w-4 h-4 mr-2" />
                     Profile
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/premium')}>
+                    <Zap className="w-4 h-4 mr-2" />
+                    Premium
                   </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => navigate('/settings')}>
                     <Settings className="w-4 h-4 mr-2" />
@@ -290,7 +281,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
             </p>
           </div>
         )}
-      </div>      {/* Login Dialog */}
+      </div>{/* Login Dialog */}
       <LoginDialog 
         isOpen={showLogin}
         onClose={() => setShowLogin(false)}
