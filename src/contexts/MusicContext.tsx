@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useRef, useEffect, type ReactNode } from 'react';
+import { createContext, useContext, useState, useRef, useEffect, useCallback, type ReactNode } from 'react';
 
 export interface Track {
   id: string;
@@ -63,23 +63,19 @@ export function MusicProvider({ children }: { children: ReactNode }) {
     { id: '2', name: 'Electronic Mix', tracks: [] },
     { id: '3', name: 'Jazz Collection', tracks: [] }
   ]);
-
   // Initialize audio element
   useEffect(() => {
     if (!audioRef.current) {
       audioRef.current = new Audio();
       audioRef.current.addEventListener('timeupdate', handleTimeUpdate);
       audioRef.current.addEventListener('loadedmetadata', handleLoadedMetadata);
-      audioRef.current.addEventListener('ended', handleTrackEnded);
     }
 
     return () => {
       if (audioRef.current) {
         audioRef.current.removeEventListener('timeupdate', handleTimeUpdate);
         audioRef.current.removeEventListener('loadedmetadata', handleLoadedMetadata);
-        audioRef.current.removeEventListener('ended', handleTrackEnded);
-      }
-    };
+      }    };
   }, []);
 
   const handleTimeUpdate = () => {
@@ -96,12 +92,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
       setPlayerState(prev => ({
         ...prev,
         duration: audioRef.current?.duration || 0
-      }));
-    }
-  };
-
-  const handleTrackEnded = () => {
-    nextTrack();
+      }));    }
   };
 
   const playTrack = (track: Track) => {
@@ -130,8 +121,7 @@ export function MusicProvider({ children }: { children: ReactNode }) {
       setPlayerState(prev => ({ ...prev, isPlaying: true }));
     }
   };
-
-  const nextTrack = () => {
+  const nextTrack = useCallback(() => {
     if (queue.length > 0) {
       const currentIndex = queue.findIndex(track => track.id === playerState.currentTrack?.id);
       const nextIndex = currentIndex + 1;
@@ -141,8 +131,23 @@ export function MusicProvider({ children }: { children: ReactNode }) {
       } else if (playerState.repeat === 'all') {
         playTrack(queue[0]);
       }
+    }  }, [queue, playerState.currentTrack?.id, playerState.repeat]);
+  const handleTrackEnded = useCallback(() => {
+    nextTrack();
+  }, [nextTrack]);
+
+  // Set up the ended event listener separately
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.addEventListener('ended', handleTrackEnded);
+      
+      return () => {
+        if (audioRef.current) {
+          audioRef.current.removeEventListener('ended', handleTrackEnded);
+        }
+      };
     }
-  };
+  }, [handleTrackEnded]);
 
   const previousTrack = () => {
     if (queue.length > 0) {

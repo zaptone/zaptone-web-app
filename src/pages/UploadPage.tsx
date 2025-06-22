@@ -30,7 +30,6 @@ export function UploadPage() {
     genre: '',
     description: ''
   });
-
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -41,35 +40,7 @@ export function UploadPage() {
     }
   }, []);
 
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    setDragActive(false);
-    
-    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      handleFiles(e.dataTransfer.files);
-    }
-  }, []);
-
-  const handleFiles = (files: FileList) => {
-    Array.from(files).forEach(file => {
-      if (file.type.startsWith('audio/')) {
-        const newFile: UploadFile = {
-          id: Math.random().toString(),
-          file,
-          progress: 0,
-          status: 'uploading'
-        };
-        
-        setUploadFiles(prev => [...prev, newFile]);
-        
-        // Simulate upload progress
-        simulateUpload(newFile.id);
-      }
-    });
-  };
-
-  const simulateUpload = (fileId: string) => {
+  const simulateUpload = useCallback((fileId: string) => {
     const interval = setInterval(() => {
       setUploadFiles(prev => prev.map(file => {
         if (file.id === fileId) {
@@ -87,7 +58,35 @@ export function UploadPage() {
     setTimeout(() => {
       clearInterval(interval);
     }, 2000);
-  };
+  }, []);
+
+  const handleFiles = useCallback((files: FileList) => {
+    Array.from(files).forEach(file => {
+      if (file.type.startsWith('audio/')) {
+        const newFile: UploadFile = {
+          id: Math.random().toString(),
+          file,
+          progress: 0,
+          status: 'uploading'
+        };
+        
+        setUploadFiles(prev => [...prev, newFile]);
+        
+        // Simulate upload progress
+        simulateUpload(newFile.id);
+      }
+    });
+  }, [simulateUpload]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleFiles(e.dataTransfer.files);
+    }
+  }, [handleFiles]);
 
   const removeFile = (fileId: string) => {
     setUploadFiles(prev => prev.filter(file => file.id !== fileId));
