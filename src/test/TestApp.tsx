@@ -4,7 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { NostrLoginProvider } from '@nostrify/react/login';
 import NostrProvider from '@/components/NostrProvider';
 import { AppProvider } from '@/components/AppProvider';
-import { AppConfig } from '@/contexts/AppContext';
+import type { AppConfig } from '@/contexts/AppContext';
 
 interface TestAppProps {
   children: React.ReactNode;

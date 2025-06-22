@@ -1,14 +1,8 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Dialog,
-  DialogContent,
-  DialogTrigger,
-} from '@/components/ui/dialog';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +15,6 @@ import {
   Home, 
   Search, 
   Library, 
-  PlusCircle, 
   Heart,
   Music,
   PlayCircle,
@@ -33,15 +26,14 @@ import {
   SkipForward,
   Zap,
   Upload,
-  Disc3,
   Settings,
   LogOut,
   User,
   MoreVertical,
   Shield,
   Dot,
-  Clock,
-  TrendingUp
+  Menu,
+  X
 } from 'lucide-react';
 import { useMusic } from '@/hooks/useMusic';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
@@ -58,9 +50,9 @@ export function MusicLayout({ children }: MusicLayoutProps) {
   const { user, metadata } = useCurrentUser();
   const { logout } = useLoginActions();
   const { toast } = useToast();
-  const { 
+  const navigate = useNavigate();
+  const location = useLocation();const { 
     playerState, 
-    playlists,
     pauseTrack, 
     resumeTrack,
     nextTrack,
@@ -70,8 +62,20 @@ export function MusicLayout({ children }: MusicLayoutProps) {
     toggleShuffle,
     toggleRepeat
   } = useMusic();
-  
-  const [showLogin, setShowLogin] = useState(false);
+    const [showLogin, setShowLogin] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on escape key
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && mobileMenuOpen) {
+        setMobileMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape);
+  }, [mobileMenuOpen]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -90,6 +94,15 @@ export function MusicLayout({ children }: MusicLayoutProps) {
     const rect = e.currentTarget.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
     setVolume(percent);
+  };
+
+  const handleNavigation = (path: string) => {
+    navigate(path);
+    setMobileMenuOpen(false); // Close mobile menu when navigating
+  };
+
+  const isActiveRoute = (path: string) => {
+    return location.pathname === path;
   };
 
   const handleLogout = async () => {
@@ -116,103 +129,147 @@ export function MusicLayout({ children }: MusicLayoutProps) {
   return (
     <div className="h-screen music-app-bg text-foreground flex flex-col">
       {/* Main Content Area */}
-      <div className="flex flex-1 overflow-hidden">
-        {/* Sidebar - Hidden on mobile, shown on desktop */}
-        <div className="hidden lg:flex w-64 music-sidebar flex-col">
-          {/* Logo */}
+      <div className="flex flex-1 overflow-hidden">        {/* Sidebar - Hidden on mobile, shown on desktop */}
+        <div className="hidden lg:flex w-64 music-sidebar flex-col">          {/* Logo */}
           <div className="p-6 flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
-                <Music className="w-5 h-5 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-purple-800 rounded-xl flex items-center justify-center">
+                <Music className="w-6 h-6 text-white" />
               </div>
-              <h1 className="text-xl font-bold bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                ZapTone
-              </h1>
+              <div>
+                <h1 className="text-xl font-bold text-foreground">ZapTone</h1>
+                <p className="text-xs text-muted-foreground">Decentralized Music Platform</p>
+              </div>
             </div>
             <ThemeToggle />
           </div>
 
-          {/* Navigation */}
-          <nav className="px-4 space-y-2">
-            <Button variant="ghost" className="w-full justify-start sidebar-item active">
-              <Home className="w-5 h-5" />
-              Home
-            </Button>
-            <Button variant="ghost" className="w-full justify-start sidebar-item">
-              <Search className="w-5 h-5" />
-              Search
-            </Button>
-            <Button variant="ghost" className="w-full justify-start sidebar-item">
-              <Library className="w-5 h-5" />
-              Your Library
-            </Button>
-          </nav>
-
-          <Separator className="mx-4 my-4 opacity-20" />
-
-          {/* Quick Actions */}
-          <div className="px-4 space-y-2">
-            <Button variant="ghost" className="w-full justify-start sidebar-item">
-              <PlusCircle className="w-5 h-5" />
-              Create Playlist
-            </Button>
-            <Button variant="ghost" className="w-full justify-start sidebar-item">
-              <Heart className="w-5 h-5" />
-              Liked Songs
-            </Button>
-            {user && (
-              <Button variant="ghost" className="w-full justify-start sidebar-item">
-                <Upload className="w-5 h-5" />
-                Upload Music
-              </Button>
-            )}
-          </div>
-
-          <Separator className="mx-4 my-4 opacity-20" />
-
-          {/* Recently Played / Playlists */}
-          <div className="flex-1 px-4">
-            <div className="mb-3 px-2">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Recently Played</h3>
-            </div>
-            <ScrollArea className="h-32 mb-4">
-              <div className="space-y-1">
-                <Button variant="ghost" className="w-full justify-start text-sm sidebar-item">
-                  <Clock className="w-4 h-4" />
-                  Digital Dreams
-                </Button>
-                <Button variant="ghost" className="w-full justify-start text-sm sidebar-item">
-                  <Clock className="w-4 h-4" />
-                  Coffee Shop Blues
-                </Button>
-                <Button variant="ghost" className="w-full justify-start text-sm sidebar-item">
-                  <Clock className="w-4 h-4" />
-                  Neon Nights
-                </Button>
-              </div>
-            </ScrollArea>
-
-            <div className="mb-3 px-2">
-              <h3 className="text-sm font-medium text-muted-foreground mb-2">Made for you</h3>
-            </div>
-            <ScrollArea className="flex-1">
-              <div className="space-y-1">
-                {playlists.map((playlist: { id: string; name: string }) => (
-                    <Button
-                        key={playlist.id}
-                        variant="ghost"
-                        className="w-full justify-start text-sm sidebar-item"
+          {/* Scrollable Content Area */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto custom-scrollbar">              {/* DISCOVER MUSIC Section */}
+              <div className="px-6 mb-6">
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">DISCOVER MUSIC</h2>
+                <div className="space-y-1">
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start h-12 px-4 rounded-lg ${
+                      isActiveRoute('/') 
+                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800'
+                        : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => handleNavigation('/')}
+                  >
+                    <Home className="w-5 h-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium">Home</div>
+                      <div className="text-xs opacity-90">Discover new music</div>
+                    </div>
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start h-12 px-4 rounded-lg ${
+                      isActiveRoute('/search') 
+                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800'
+                        : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => handleNavigation('/search')}
+                  >
+                    <Search className="w-5 h-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium">Search</div>
+                      <div className="text-xs opacity-70">Find tracks and artists</div>
+                    </div>
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start h-12 px-4 rounded-lg ${
+                      isActiveRoute('/library') 
+                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800'
+                        : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => handleNavigation('/library')}
+                  >
+                    <Library className="w-5 h-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium">Your Library</div>
+                      <div className="text-xs opacity-70">Your saved music</div>
+                    </div>
+                  </Button>
+                  
+                  {user && (
+                    <Button 
+                      variant="ghost" 
+                      className={`w-full justify-start h-12 px-4 rounded-lg ${
+                        isActiveRoute('/upload') 
+                          ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800'
+                          : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                      }`}
+                      onClick={() => handleNavigation('/upload')}
                     >
-                        <Disc3 className="w-4 h-4" />
-                        {playlist.name}
+                      <Upload className="w-5 h-5 mr-3" />
+                      <div className="text-left">
+                        <div className="font-medium">Upload</div>
+                        <div className="text-xs opacity-70">Share your music</div>
+                      </div>
                     </Button>
-                ))}
+                  )}
+                  
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start h-12 px-4 rounded-lg ${
+                      isActiveRoute('/liked') 
+                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800'
+                        : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => handleNavigation('/liked')}
+                  >
+                    <Heart className="w-5 h-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium">Liked Songs</div>
+                      <div className="text-xs opacity-70">Your favorite tracks</div>
+                    </div>
+                  </Button>
+                </div>
               </div>
-            </ScrollArea>
+
+              {/* RECENTLY PLAYED Section */}
+              <div className="px-6 mb-6">
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">RECENTLY PLAYED</h2>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/30 cursor-pointer group">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg flex items-center justify-center relative">
+                      <Music className="w-5 h-5 text-white" />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <PlayCircle className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">Sample Track</p>
+                      <p className="text-sm text-muted-foreground truncate">Artist Name</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/30 cursor-pointer group">
+                    <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-700 rounded-lg flex items-center justify-center relative">
+                      <Music className="w-5 h-5 text-white" />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <PlayCircle className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">Another Track</p>
+                      <p className="text-sm text-muted-foreground truncate">Different Artist</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
 
-          {/* User Section */}
-          <div className="p-4 border-t border-border">
+          {/* User Section - Always visible at bottom */}
+          <div className="p-4 border-t border-border flex-shrink-0">
             {user ? (
               <div className="flex items-center gap-3 p-3 rounded-lg music-card hover:bg-transparent cursor-pointer group">
                 <Avatar className="w-10 h-10 ring-2 ring-purple-500/20">
@@ -276,6 +333,230 @@ export function MusicLayout({ children }: MusicLayoutProps) {
               </Button>
             )}
           </div>
+        </div>{/* Mobile Sidebar Overlay */}
+        {mobileMenuOpen && (
+          <div 
+            className="lg:hidden fixed inset-0 bg-black/50 z-40"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+        )}        {/* Mobile Sidebar */}
+        <div className={`lg:hidden fixed top-0 left-0 h-full w-80 bg-background border-r border-border z-50 transform transition-transform duration-300 ease-in-out flex flex-col ${
+          mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+        }`}>          {/* Mobile Sidebar Header */}
+          <div className="p-6 flex items-center justify-between border-b border-border flex-shrink-0">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-purple-800 rounded-xl flex items-center justify-center">
+                <Music className="w-6 h-6 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-foreground">ZapTone</h1>
+                <p className="text-xs text-muted-foreground">Decentralized Music Platform</p>
+              </div>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setMobileMenuOpen(false)}
+              className="hover:bg-accent"
+            >
+              <X className="w-5 h-5" />
+            </Button>
+          </div>
+
+          {/* Mobile Scrollable Content Area */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex-1 overflow-y-auto custom-scrollbar">              {/* DISCOVER MUSIC Section */}
+              <div className="px-6 py-4">
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">DISCOVER MUSIC</h2>
+                <div className="space-y-1">
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start h-12 px-4 rounded-lg ${
+                      isActiveRoute('/') 
+                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800'
+                        : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => handleNavigation('/')}
+                  >
+                    <Home className="w-5 h-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium">Home</div>
+                      <div className="text-xs opacity-90">Discover new music</div>
+                    </div>
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start h-12 px-4 rounded-lg ${
+                      isActiveRoute('/search') 
+                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800'
+                        : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => handleNavigation('/search')}
+                  >
+                    <Search className="w-5 h-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium">Search</div>
+                      <div className="text-xs opacity-70">Find tracks and artists</div>
+                    </div>
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start h-12 px-4 rounded-lg ${
+                      isActiveRoute('/library') 
+                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800'
+                        : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => handleNavigation('/library')}
+                  >
+                    <Library className="w-5 h-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium">Your Library</div>
+                      <div className="text-xs opacity-70">Your saved music</div>
+                    </div>
+                  </Button>
+                  
+                  {user && (
+                    <Button 
+                      variant="ghost" 
+                      className={`w-full justify-start h-12 px-4 rounded-lg ${
+                        isActiveRoute('/upload') 
+                          ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800'
+                          : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                      }`}
+                      onClick={() => handleNavigation('/upload')}
+                    >
+                      <Upload className="w-5 h-5 mr-3" />
+                      <div className="text-left">
+                        <div className="font-medium">Upload</div>
+                        <div className="text-xs opacity-70">Share your music</div>
+                      </div>
+                    </Button>
+                  )}
+                  
+                  <Button 
+                    variant="ghost" 
+                    className={`w-full justify-start h-12 px-4 rounded-lg ${
+                      isActiveRoute('/liked') 
+                        ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800'
+                        : 'hover:bg-accent/50 text-muted-foreground hover:text-foreground'
+                    }`}
+                    onClick={() => handleNavigation('/liked')}
+                  >
+                    <Heart className="w-5 h-5 mr-3" />
+                    <div className="text-left">
+                      <div className="font-medium">Liked Songs</div>
+                      <div className="text-xs opacity-70">Your favorite tracks</div>
+                    </div>
+                  </Button>
+                </div>
+              </div>
+
+              {/* RECENTLY PLAYED Section */}
+              <div className="px-6 pb-4">
+                <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-4">RECENTLY PLAYED</h2>
+                <div className="space-y-2">
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/30 cursor-pointer group">
+                    <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-700 rounded-lg flex items-center justify-center relative">
+                      <Music className="w-5 h-5 text-white" />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <PlayCircle className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">Sample Track</p>
+                      <p className="text-sm text-muted-foreground truncate">Artist Name</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-accent/30 cursor-pointer group">
+                    <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-pink-700 rounded-lg flex items-center justify-center relative">
+                      <Music className="w-5 h-5 text-white" />
+                      <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <PlayCircle className="w-6 h-6 text-white" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">Another Track</p>
+                      <p className="text-sm text-muted-foreground truncate">Different Artist</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile User Section */}
+          <div className="p-4 border-t border-border flex-shrink-0">
+            {user ? (
+              <div className="flex items-center gap-3 p-3 rounded-lg music-card hover:bg-transparent cursor-pointer group">
+                <Avatar className="w-10 h-10 ring-2 ring-purple-500/20">
+                  <AvatarImage src={userPicture} alt={userDisplayName} />
+                  <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-bold">
+                    {userDisplayName?.slice(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="text-sm font-medium truncate">
+                      {userDisplayName}
+                    </p>
+                    {userNip05 && (
+                      <Badge variant="secondary" className="px-1 py-0 text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300">
+                        <Shield className="w-2 h-2 mr-1" />
+                        Verified
+                      </Badge>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-1 mt-1">
+                    <Dot className="w-3 h-3 text-green-500" />
+                    <p className="text-xs text-muted-foreground">Online</p>
+                  </div>
+                </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem>
+                      <User className="w-4 h-4 mr-2" />
+                      Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem>
+                      <Settings className="w-4 h-4 mr-2" />
+                      Settings
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400">
+                      <LogOut className="w-4 h-4 mr-2" />
+                      Sign out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <Button 
+                  onClick={() => setShowLogin(true)}
+                  className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium"
+                >
+                  Sign In
+                </Button>
+                <p className="text-xs text-center text-muted-foreground">
+                  Sign in to upload and share your music
+                </p>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Main Content */}
@@ -283,6 +564,14 @@ export function MusicLayout({ children }: MusicLayoutProps) {
           {/* Mobile Header */}
           <div className="lg:hidden flex items-center justify-between p-4 music-player-bar border-b border-border">
             <div className="flex items-center gap-3">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setMobileMenuOpen(true)}
+                className="hover:bg-accent mr-2"
+              >
+                <Menu className="w-5 h-5" />
+              </Button>
               <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full flex items-center justify-center">
                 <Music className="w-5 h-5 text-white" />
               </div>

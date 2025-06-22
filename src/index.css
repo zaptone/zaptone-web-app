@@ -118,3 +118,51 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Simple and effective scrollbar styles */
+* {
+  scrollbar-width: thin;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* Dark mode - simple and visible */
+.dark *::-webkit-scrollbar-track {
+  background: #2a2a2a !important;
+}
+
+.dark *::-webkit-scrollbar-thumb {
+  background: #555555 !important;
+}
+
+.dark *::-webkit-scrollbar-thumb:hover {
+  background: #777777 !important;
+}
+
+.dark * {
+  scrollbar-color: #555555 #2a2a2a;
+}
+
+/* Custom Scrollbar Class - for specific elements that need custom styling */
+.custom-scrollbar {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
