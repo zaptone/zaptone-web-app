@@ -77,9 +77,11 @@ export function Sidebar({ className = '' }: SidebarProps) {
       <div className="p-6 border-b border-border/30" style={{ flexShrink: 0 }}>
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
+            <img 
+              src="/zaptone-logo.png" 
+              alt="ZapTone" 
+              className="w-10 h-10 object-contain"
+            />
             <div>
               <h1 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-indigo-600 bg-clip-text text-transparent">
                 ZapTone
