@@ -426,8 +426,8 @@ function TrendingTrackCard({ track, rank, onPlay, onZap, isPlaying, isCurrent, f
   };
 
   return (
-    <Card className={`group hover:shadow-md transition-all duration-300 cursor-pointer border-0 bg-card/80 backdrop-blur-sm hover:bg-card ${
-      isCurrent ? 'bg-muted/30 shadow-sm' : ''
+    <Card className={`group hover:shadow-lg transition-all duration-300 cursor-pointer ${
+      isCurrent ? 'bg-accent border-accent-foreground/20 shadow-sm' : ''
     }`}>
       <CardContent className="p-2">
         <div className="relative">
