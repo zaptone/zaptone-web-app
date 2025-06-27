@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
 import { useBitcoinPrice } from '@/hooks/useBitcoinPrice';
+import { withLoading } from '@/hooks/useGlobalLoading';
 
 interface ZapDialogProps {
   open: boolean;
@@ -149,21 +150,23 @@ export function ZapDialog({ open, onOpenChange, recipient, content }: ZapDialogP
     setIsZapping(true);
 
     try {
-      // Generate real Lightning invoice using LNURL
-      const lightningInvoice = await generateInvoice();
-      setInvoice(lightningInvoice);
-      setShowInvoiceView(true); // Switch to invoice view
+      await withLoading(async () => {
+        // Generate real Lightning invoice using LNURL
+        const lightningInvoice = await generateInvoice();
+        setInvoice(lightningInvoice);
+        setShowInvoiceView(true); // Switch to invoice view
 
-      // Try to open the user's Lightning wallet
-      // This will work if they have a Lightning wallet installed that supports lightning: URLs
-      const lightningUrl = `lightning:${lightningInvoice}`;
-      
-      // Create a temporary link to trigger wallet opening
-      const link = document.createElement('a');
-      link.href = lightningUrl;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+        // Try to open the user's Lightning wallet
+        // This will work if they have a Lightning wallet installed that supports lightning: URLs
+        const lightningUrl = `lightning:${lightningInvoice}`;
+        
+        // Create a temporary link to trigger wallet opening
+        const link = document.createElement('a');
+        link.href = lightningUrl;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }, 'Generating Lightning invoice...');
 
       setIsZapping(false);
       
@@ -351,7 +354,6 @@ export function ZapDialog({ open, onOpenChange, recipient, content }: ZapDialogP
                     variant={amount === preset ? "default" : "outline"}
                     size="sm"
                     onClick={() => handleAmountSelect(preset)}
-                    className={amount === preset ? "bg-yellow-500 hover:bg-yellow-600" : ""}
                   >
                     {formatSats(preset)}
                   </Button>
@@ -407,7 +409,7 @@ export function ZapDialog({ open, onOpenChange, recipient, content }: ZapDialogP
               <Button 
                 onClick={handleZap} 
                 disabled={isZapping || !amount}
-                className="flex-1 bg-yellow-500 hover:bg-yellow-600 text-black"
+                className="flex-1"
               >
                 {isZapping ? (
                   <>

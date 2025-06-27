@@ -1,6 +1,8 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { ScrollToTop } from "./components/ScrollToTop";
 import { MusicLayout } from "./components/MusicLayout";
+import { LoadingOverlay } from "./components/LoadingOverlay";
+import { RouteLoadingHandler } from "./components/RouteLoadingHandler";
 import HomePage from "./pages/HomePage";
 import { SearchPage } from "./pages/SearchPage";
 import { LibraryPage } from "./pages/LibraryPage";
@@ -26,6 +28,8 @@ export function AppRouter() {
   return (
     <BrowserRouter>
       <ScrollToTop />
+      <RouteLoadingHandler />
+      <LoadingOverlay />
       <MusicLayout>        <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/search" element={<SearchPage />} />

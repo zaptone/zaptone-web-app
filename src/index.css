@@ -166,3 +166,17 @@
   overflow-y: auto;
   overflow-x: hidden;
 }
+
+/* Custom ZapTone logo zoom animation */
+@keyframes zap-zoom {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.animate-zap-zoom {
+  animation: zap-zoom 2s ease-in-out infinite;
+}

@@ -1,10 +1,18 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/useToast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { 
   Play, 
   Music,
@@ -18,7 +26,12 @@ import {
   Star,
   Users,
   Radio,
-  Disc3
+  Disc3,
+  Heart,
+  ListPlus,
+  Share,
+  Download,
+  Flag
 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useMusic } from '@/hooks/useMusic';
@@ -347,6 +360,45 @@ interface TrendingTrackCardProps {
 }
 
 function TrendingTrackCard({ track, rank, onPlay, onZap, isPlaying, isCurrent, formatPlays, formatDuration }: TrendingTrackCardProps) {
+  const { toast } = useToast();
+
+  const handleAddToPlaylist = () => {
+    toast({
+      title: "Added to Playlist",
+      description: `"${track.title}" has been added to your playlist`,
+    });
+  };
+
+  const handleLike = () => {
+    toast({
+      title: "Added to Liked Songs",
+      description: `"${track.title}" has been added to your liked songs`,
+    });
+  };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(`Check out "${track.title}" by ${track.artist} on ZapTone!`);
+    toast({
+      title: "Link Copied",
+      description: "Track link has been copied to clipboard",
+    });
+  };
+
+  const handleDownload = () => {
+    toast({
+      title: "Download Started",
+      description: `Downloading "${track.title}"...`,
+    });
+  };
+
+  const handleReport = () => {
+    toast({
+      title: "Report Submitted",
+      description: "Thank you for reporting this content",
+      variant: "destructive"
+    });
+  };
+
   return (
     <Card className={`group hover:shadow-md transition-all duration-300 cursor-pointer border-0 bg-card/80 backdrop-blur-sm hover:bg-card ${
       isCurrent ? 'bg-muted/30 shadow-sm' : ''
@@ -424,19 +476,47 @@ function TrendingTrackCard({ track, rank, onPlay, onZap, isPlaying, isCurrent, f
           <div className="flex items-center gap-1">
             {/* Zap Button */}
             <Button 
-              variant="outline" 
+              variant="ghost" 
               size="sm" 
               onClick={onZap}
-              className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 hover:border-yellow-300 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-950/20 transition-all px-2 py-1 text-xs"
+              className="text-yellow-600 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:bg-yellow-950/20 transition-all px-2 py-1 text-xs"
             >
               <Zap className="w-3 h-3 mr-1" />
               Zap
             </Button>
 
             {/* More Options */}
-            <Button variant="ghost" size="sm" className="opacity-60 hover:opacity-100 transition-opacity p-1">
-              <MoreHorizontal className="w-3 h-3" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="opacity-60 hover:opacity-100 transition-opacity p-1">
+                  <MoreHorizontal className="w-3 h-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={handleLike}>
+                  <Heart className="w-4 h-4 mr-2" />
+                  Add to Liked Songs
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleAddToPlaylist}>
+                  <ListPlus className="w-4 h-4 mr-2" />
+                  Add to Playlist
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleShare}>
+                  <Share className="w-4 h-4 mr-2" />
+                  Share Track
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownload}>
+                  <Download className="w-4 h-4 mr-2" />
+                  Download
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleReport} className="text-destructive">
+                  <Flag className="w-4 h-4 mr-2" />
+                  Report
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </CardContent>

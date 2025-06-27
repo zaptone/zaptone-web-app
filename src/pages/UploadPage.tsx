@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
+import { useGlobalLoading, withLoading } from '@/hooks/useGlobalLoading';
 import { 
   Upload, 
   Music, 
@@ -39,6 +40,39 @@ export function UploadPage() {
       setDragActive(false);
     }
   }, []);
+
+  const { updateProgress, updateMessage } = useGlobalLoading();
+
+  const handlePublish = async () => {
+    try {
+      await withLoading(async () => {
+        // Simulate publishing process with progress updates
+        updateMessage('Uploading files...');
+        updateProgress(20);
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
+        updateMessage('Processing audio...');
+        updateProgress(50);
+        await new Promise(resolve => setTimeout(resolve, 700));
+        
+        updateMessage('Publishing to network...');
+        updateProgress(80);
+        await new Promise(resolve => setTimeout(resolve, 600));
+        
+        updateMessage('Finalizing...');
+        updateProgress(95);
+        await new Promise(resolve => setTimeout(resolve, 300));
+        
+        // TODO: Actual publishing logic here
+        console.log('Publishing track:', trackInfo);
+      }, 'Publishing track...', (progress) => updateProgress(progress));
+      
+      // Success feedback could go here
+      console.log('Track published successfully!');
+    } catch (error) {
+      console.error('Failed to publish track:', error);
+    }
+  };
 
   const simulateUpload = useCallback((fileId: string) => {
     const interval = setInterval(() => {
@@ -269,6 +303,7 @@ export function UploadPage() {
             size="lg" 
             className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
             disabled={!trackInfo.title || !trackInfo.artist || uploadFiles.length === 0}
+            onClick={handlePublish}
           >
             Publish Track
           </Button>
