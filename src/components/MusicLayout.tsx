@@ -60,6 +60,8 @@ export function MusicLayout({ children }: MusicLayoutProps) {
   
   const [showLogin, setShowLogin] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [progressHoverPosition, setProgressHoverPosition] = useState<number | null>(null);
+  const [volumeHoverPosition, setVolumeHoverPosition] = useState<number | null>(null);
 
   // Close mobile menu on escape key
   useEffect(() => {
@@ -92,10 +94,30 @@ export function MusicLayout({ children }: MusicLayoutProps) {
     seekTo(newTime);
   };
 
+  const handleProgressMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setProgressHoverPosition(percent * 100);
+  };
+
+  const handleProgressMouseLeave = () => {
+    setProgressHoverPosition(null);
+  };
+
   const handleVolumeClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const rect = e.currentTarget.getBoundingClientRect();
     const percent = (e.clientX - rect.left) / rect.width;
     setVolume(percent);
+  };
+
+  const handleVolumeMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const percent = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+    setVolumeHoverPosition(percent * 100);
+  };
+
+  const handleVolumeMouseLeave = () => {
+    setVolumeHoverPosition(null);
   };
 
   const handleLogout = async () => {
@@ -280,6 +302,8 @@ export function MusicLayout({ children }: MusicLayoutProps) {
                 <div 
                   className="flex-1 h-2 bg-muted rounded-full cursor-pointer relative group hover:h-3 transition-all duration-200"
                   onClick={handleProgressClick}
+                  onMouseMove={handleProgressMouseMove}
+                  onMouseLeave={handleProgressMouseLeave}
                 >
                   <div 
                     className="h-full bg-primary rounded-full transition-all duration-100 group-hover:bg-primary/80"
@@ -288,9 +312,9 @@ export function MusicLayout({ children }: MusicLayoutProps) {
                     }}
                   />
                   {/* Hover indicator */}
-                  <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+                  <div className="absolute top-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg pointer-events-none"
                     style={{ 
-                      left: `${playerState.duration > 0 ? (playerState.currentTime / playerState.duration) * 100 : 0}%`,
+                      left: `${progressHoverPosition !== null ? progressHoverPosition : (playerState.duration > 0 ? (playerState.currentTime / playerState.duration) * 100 : 0)}%`,
                       transform: 'translateX(-50%) translateY(-50%)'
                     }}
                   />
@@ -315,15 +339,17 @@ export function MusicLayout({ children }: MusicLayoutProps) {
               <div 
                 className="w-20 h-2 bg-muted rounded-full cursor-pointer relative hidden sm:block group hover:h-3 transition-all duration-200"
                 onClick={handleVolumeClick}
+                onMouseMove={handleVolumeMouseMove}
+                onMouseLeave={handleVolumeMouseLeave}
               >
                 <div 
                   className="h-full bg-primary rounded-full transition-all duration-100 group-hover:bg-primary/80"
                   style={{ width: `${playerState.muted ? 0 : playerState.volume * 100}%` }}
                 />
                 {/* Volume hover indicator */}
-                <div className="absolute top-1/2 -translate-y-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg"
+                <div className="absolute top-1/2 w-3 h-3 bg-primary rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg pointer-events-none"
                   style={{ 
-                    left: `${playerState.muted ? 0 : playerState.volume * 100}%`,
+                    left: `${volumeHoverPosition !== null ? volumeHoverPosition : (playerState.muted ? 0 : playerState.volume * 100)}%`,
                     transform: 'translateX(-50%) translateY(-50%)'
                   }}
                 />
