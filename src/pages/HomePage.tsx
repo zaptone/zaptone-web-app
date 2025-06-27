@@ -3,62 +3,95 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Play, 
   Music,
   TrendingUp,
   PlayCircle,
   Pause,
-  Sparkles,
+  Search,
+  Clock,
+  MoreHorizontal,
   Zap,
-  Globe,
+  Star,
+  Users,
   Radio,
-  Mic,
-  Headphones,
-  Shield,
-  Palette,
-  BarChart3,
-  ShoppingBag,
-  Heart,
-  Video
+  Disc3
 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useMusic } from '@/hooks/useMusic';
 import LoginDialog from '@/components/auth/LoginDialog';
+import { ZapDialog } from '@/components/ZapDialog';
 
-// Sample tracks using the music.mp3 file
-const SAMPLE_TRACKS = [
+// Trending tracks with Lightning addresses for each artist
+const TRENDING_TRACKS = [
   { 
     id: '1', 
-    title: 'Summer Vibes', 
-    artist: 'Electronic Artist', 
+    title: 'Midnight Dreams', 
+    artist: 'Luna Echo', 
     url: '/music.mp3',
     genre: 'Electronic',
-    plays: 1240
+    duration: 222, // in seconds (3:42)
+    plays: 2847295,
+    isHot: true,
+    lnAddress: 'milad@getalby.com'
   },
   { 
     id: '2', 
-    title: 'Chill Beats', 
-    artist: 'Lo-Fi Producer', 
+    title: 'Golden Hour', 
+    artist: 'Sunset Collective', 
     url: '/music.mp3',
-    genre: 'Lo-Fi',
-    plays: 892
+    genre: 'Indie Pop',
+    duration: 258, // in seconds (4:18)
+    plays: 1923847,
+    isHot: true,
+    lnAddress: 'milad@getalby.com'
   },
   { 
     id: '3', 
-    title: 'Ambient Dreams', 
-    artist: 'Ambient Collective', 
+    title: 'Ocean Waves', 
+    artist: 'Blue Horizon', 
     url: '/music.mp3',
     genre: 'Ambient',
-    plays: 1567
+    duration: 323, // in seconds (5:23)
+    plays: 1456729,
+    isHot: false,
+    lnAddress: 'milad@getalby.com'
   },
   { 
     id: '4', 
-    title: 'Jazz Fusion', 
-    artist: 'Jazz Masters', 
+    title: 'City Lights', 
+    artist: 'Neon Dreams', 
     url: '/music.mp3',
-    genre: 'Jazz',
-    plays: 743
+    genre: 'Synthwave',
+    duration: 235, // in seconds (3:55)
+    plays: 3291847,
+    isHot: true,
+    lnAddress: 'milad@getalby.com'
+  },
+  { 
+    id: '5', 
+    title: 'Forest Path', 
+    artist: 'Nature Sounds', 
+    url: '/music.mp3',
+    genre: 'Nature',
+    duration: 372, // in seconds (6:12)
+    plays: 987654,
+    isHot: false,
+    lnAddress: 'milad@getalby.com'
+  },
+  { 
+    id: '6', 
+    title: 'Electric Soul', 
+    artist: 'Voltage', 
+    url: '/music.mp3',
+    genre: 'Electronic',
+    duration: 247, // in seconds (4:07)
+    plays: 2156789,
+    isHot: true,
+    lnAddress: 'milad@getalby.com'
   }
 ];
 
@@ -66,9 +99,25 @@ export default function HomePage() {
   const { user } = useCurrentUser();
   const { playTrack, playerState, pauseTrack, resumeTrack } = useMusic();
   const [showLoginDialog, setShowLoginDialog] = useState(false);
+  const [zapDialog, setZapDialog] = useState<{ 
+    open: boolean; 
+    recipient?: {
+      pubkey: string;
+      name: string;
+      picture?: string;
+      lnAddress: string;
+    }; 
+    content?: {
+      type: 'track';
+      title: string;
+      id: string;
+    }
+  }>({ 
+    open: false 
+  });
   const navigate = useNavigate();
 
-  const handlePlayTrack = (track: typeof SAMPLE_TRACKS[0]) => {
+  const handlePlayTrack = (track: typeof TRENDING_TRACKS[0]) => {
     const isCurrentTrack = playerState.currentTrack?.id === track.id;
     
     if (isCurrentTrack && playerState.isPlaying) {
@@ -80,368 +129,316 @@ export default function HomePage() {
     }
   };
 
+  const handleZap = (track: typeof TRENDING_TRACKS[0]) => {
+    setZapDialog({
+      open: true,
+      recipient: {
+        pubkey: `artist_${track.id}`,
+        name: track.artist,
+        picture: undefined,
+        lnAddress: track.lnAddress
+      },
+      content: {
+        type: 'track' as const,
+        title: track.title,
+        id: track.id
+      }
+    });
+  };
+
+  const formatPlays = (plays: number) => {
+    if (plays >= 1000000) {
+      return `${(plays / 1000000).toFixed(1)}M`;
+    }
+    if (plays >= 1000) {
+      return `${(plays / 1000).toFixed(1)}K`;
+    }
+    return plays.toString();
+  };
+
+  const formatDuration = (seconds: number) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
   return (
     <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-6 py-12 max-w-4xl">
+      <div className="container mx-auto px-4 py-8 max-w-7xl">
         
-        {/* Hero Section */}
-        <section className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 bg-purple-500/10 text-purple-600 px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <Sparkles className="w-4 h-4" />
-            Decentralized Music Platform
-          </div>
-          
-          <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+        {/* Header Section */}
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
             ZapTone
           </h1>
-            <p className="text-lg text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Discover music, support artists directly, and experience decentralized music streaming.
+          <p className="text-lg text-muted-foreground mb-8">
+            Discover trending music from independent artists worldwide
           </p>
+          
+          {/* Search Bar */}
+          <div className="relative max-w-lg mx-auto mb-8">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
+            <input 
+              type="text" 
+              placeholder="Search for music, artists, or genres..."
+              className="w-full pl-12 pr-4 py-4 bg-background border border-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent text-base"
+            />
+          </div>
+        </div>
 
-          {/* Quick Action Buttons */}
-          <div className="flex flex-wrap justify-center gap-4 mb-8">
+        {/* Quick Actions */}
+        {user && (
+          <div className="flex justify-center gap-4 mb-12">
             <Button 
-              size="lg" 
-              className="bg-gradient-to-r from-red-500 to-pink-600 hover:from-red-600 hover:to-pink-700 text-white shadow-lg"
-              onClick={() => navigate('/live')}
+              variant="outline" 
+              onClick={() => navigate('/upload')}
+              className="border-purple-200 hover:bg-purple-50 dark:border-purple-800 dark:hover:bg-purple-950/20 px-6 py-3"
             >
-              <Video className="w-5 h-5 mr-2" />
-              Go Live
+              <Music className="w-4 h-4 mr-2" />
+              Upload Music
             </Button>
             <Button 
-              size="lg" 
               variant="outline"
-              className="border-purple-200 hover:bg-purple-50 dark:border-purple-800 dark:hover:bg-purple-950/20 shadow-lg"
-              onClick={() => navigate('/store')}
+              onClick={() => navigate('/library')}
+              className="px-6 py-3"
             >
-              <ShoppingBag className="w-5 h-5 mr-2" />
-              Store
+              <Disc3 className="w-4 h-4 mr-2" />
+              My Library
             </Button>
             <Button 
-              size="lg" 
               variant="outline"
-              className="border-blue-200 hover:bg-blue-50 dark:border-blue-800 dark:hover:bg-blue-950/20 shadow-lg"
-              onClick={() => navigate('/analytics')}
+              onClick={() => navigate('/radio')}
+              className="px-6 py-3"
             >
-              <BarChart3 className="w-5 h-5 mr-2" />
-              Analytics
+              <Radio className="w-4 h-4 mr-2" />
+              Radio
             </Button>
           </div>
-        </section>
+        )}
 
-        {/* Features Section */}
-        <section className="mb-16">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl font-bold mb-4">Platform Features</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Experience the future of music with our decentralized platform that puts artists and fans first.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Decentralized Platform */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg flex items-center justify-center">
-                    <Music className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-semibold">Decentralized Platform</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Own your music completely. No intermediaries, no gatekeepers. Your art, your rules, your revenue.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Lightning Payments */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-yellow-500 to-orange-600 rounded-lg flex items-center justify-center">
-                    <Zap className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-semibold">Lightning Payments</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Get paid instantly via Bitcoin Lightning Network. Fans can send you Zaps directly with zero intermediaries and minimal fees.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Global Reach */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-600 rounded-lg flex items-center justify-center">
-                    <Globe className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-semibold">Global Reach</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Connect with fans worldwide without geographical restrictions. Borderless music distribution.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Online Radio */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
-                    <Radio className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-semibold">Online Radio</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Create your own decentralized radio stations. Curate playlists and broadcast to global audiences 24/7.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Live Streaming */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-pink-600 rounded-lg flex items-center justify-center">
-                    <Mic className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-semibold">Live Streaming</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Perform live concerts and interact with fans in real-time. Receive instant Lightning tips during performances.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* HD Streaming */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <Headphones className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-semibold">HD Streaming</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Experience crystal-clear audio with lossless streaming. Support for high-resolution formats up to 24-bit/192kHz.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Secure & Private */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-gray-600 to-gray-800 rounded-lg flex items-center justify-center">
-                    <Shield className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-semibold">Secure & Private</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Nostr protocol-powered security ensures your content and data remain protected and under your control.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Creative Freedom */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-pink-500 to-rose-600 rounded-lg flex items-center justify-center">
-                    <Palette className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-semibold">Creative Freedom</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Express yourself without censorship. Upload, share, and monetize any genre, any style, any vision.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Real-time Analytics */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-teal-500 to-cyan-600 rounded-lg flex items-center justify-center">
-                    <BarChart3 className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-semibold">Real-time Analytics</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Track your performance with detailed insights. Understand your audience and optimize your strategy.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Merchandise Store */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-600 rounded-lg flex items-center justify-center">
-                    <ShoppingBag className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-semibold">Merchandise Store</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Sell your physical products directly to fans. T-shirts, vinyl records, artwork, and exclusive collectibles.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Buy The Art */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-violet-500 to-purple-600 rounded-lg flex items-center justify-center">
-                    <Palette className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-semibold">Buy The Art</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Purchase original artwork, limited editions, and signed memorabilia directly from your favorite artists.
-                </p>
-              </CardContent>
-            </Card>
-
-            {/* Direct Support */}
-            <Card className="group hover:shadow-lg transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-gradient-to-br from-rose-500 to-pink-600 rounded-lg flex items-center justify-center">
-                    <Heart className="w-5 h-5 text-white" />
-                  </div>
-                  <h3 className="font-semibold">Direct Support</h3>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Support artists directly through merchandise sales, exclusive content, and special fan experiences.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        </section>
-
-        {/* Music Player Section */}
-        <section className="mb-16">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-gradient-to-r from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-4 h-4 text-white" />
+        {/* Trending Music Section */}
+        <div className="mb-12">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 rounded-xl flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-3xl font-bold">Trending Now</h2>
+                <p className="text-muted-foreground">Most popular tracks this week</p>
+              </div>
             </div>
-            <h2 className="text-2xl font-bold">Featured Tracks</h2>
+            <Button variant="outline" onClick={() => navigate('/trending')}>
+              View All
+            </Button>
           </div>
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            {SAMPLE_TRACKS.map((track) => (
-              <TrackCard 
+          <div className="space-y-2">
+            {TRENDING_TRACKS.map((track, index) => (
+              <TrendingTrackCard 
                 key={track.id} 
-                track={track} 
+                track={track}
+                rank={index + 1}
                 onPlay={() => handlePlayTrack(track)}
+                onZap={() => handleZap(track)}
                 isPlaying={playerState.currentTrack?.id === track.id && playerState.isPlaying}
                 isCurrent={playerState.currentTrack?.id === track.id}
+                formatPlays={formatPlays}
+                formatDuration={formatDuration}
               />
             ))}
-          </div>        </section>
+          </div>
+        </div>
 
-        {/* Welcome Message */}
+        {/* Featured Artists Section */}
+        <div className="mb-12">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center">
+              <Star className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold">Featured Artists</h2>
+              <p className="text-muted-foreground">Discover talented independent artists</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {['Luna Echo', 'Sunset Collective', 'Neon Dreams', 'Blue Horizon'].map((artist, index) => (
+              <Card key={artist} className="group hover:shadow-lg transition-all duration-300 cursor-pointer">
+                <CardContent className="p-6 text-center">
+                  <Avatar className="w-20 h-20 mx-auto mb-4">
+                    <AvatarImage src={`/placeholder-artist-${index + 1}.jpg`} />
+                    <AvatarFallback className="text-lg bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                      {artist.split(' ').map(n => n[0]).join('')}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h3 className="font-semibold mb-1">{artist}</h3>
+                  <p className="text-sm text-muted-foreground mb-3">{Math.floor(Math.random() * 50 + 10)}K followers</p>
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Users className="w-4 h-4 mr-2" />
+                    Follow
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+
+        {/* Login CTA */}
         {!user && (
-          <section className="text-center">
-            <Card className="bg-gradient-to-r from-purple-600 to-pink-600 border-0 text-white">
-              <CardContent className="p-8">
-                <h2 className="text-2xl font-bold mb-4">Join ZapTone Today</h2>
+          <div className="text-center">
+            <Card className="bg-gradient-to-r from-purple-600 to-pink-600 border-0 text-white max-w-lg mx-auto">
+              <CardContent className="p-10">
+                <Zap className="w-12 h-12 mx-auto mb-4" />
+                <h3 className="text-2xl font-bold mb-4">Join ZapTone</h3>
                 <p className="text-white/90 mb-6">
-                  Connect with your Nostr identity to upload music, create playlists, and support artists.
-                </p>                <Button 
-                  size="lg" 
-                  className="bg-white text-purple-600 hover:bg-white/90"
+                  Upload your music, connect with fans worldwide, and earn Bitcoin through Lightning Network
+                </p>
+                <Button 
+                  size="lg"
+                  className="bg-white text-purple-600 hover:bg-white/90 px-8"
                   onClick={() => setShowLoginDialog(true)}
                 >
-                  Sign in with Nostr
+                  Get Started for Free
                 </Button>
               </CardContent>
             </Card>
-          </section>        )}
+          </div>
+        )}
 
-      </div>      {/* Login Dialog */}
+      </div>
+
+      {/* Login Dialog */}
       <LoginDialog 
         isOpen={showLoginDialog} 
         onClose={() => setShowLoginDialog(false)}
         onLogin={() => setShowLoginDialog(false)}
       />
+
+      {/* Zap Dialog */}
+      <ZapDialog
+        open={zapDialog.open}
+        onOpenChange={(open) => setZapDialog({ ...zapDialog, open })}
+        recipient={zapDialog.recipient || { pubkey: '', name: '' }}
+        content={zapDialog.content}
+      />
     </div>
   );
 }
 
-// Simple Track Card Component
-interface TrackCardProps {
+// Enhanced Track Card Component
+interface TrendingTrackCardProps {
   track: {
     id: string;
     title: string;
     artist: string;
     genre: string;
+    duration: number;
     plays: number;
+    isHot: boolean;
   };
+  rank: number;
   onPlay: () => void;
+  onZap: () => void;
   isPlaying: boolean;
   isCurrent: boolean;
+  formatPlays: (plays: number) => string;
+  formatDuration: (seconds: number) => string;
 }
 
-function TrackCard({ track, onPlay, isPlaying, isCurrent }: TrackCardProps) {
+function TrendingTrackCard({ track, rank, onPlay, onZap, isPlaying, isCurrent, formatPlays, formatDuration }: TrendingTrackCardProps) {
   return (
-    <Card className={`group hover:shadow-lg transition-all duration-300 cursor-pointer ${
-      isCurrent ? 'ring-2 ring-purple-500 bg-purple-50 dark:bg-purple-950/20' : ''
+    <Card className={`group hover:shadow-md transition-all duration-300 cursor-pointer border-0 bg-card/80 backdrop-blur-sm hover:bg-card ${
+      isCurrent ? 'bg-muted/30 shadow-sm' : ''
     }`}>
-      <CardContent className="p-4">
-        <div className="flex items-center gap-4">
-          {/* Album Art */}
+      <CardContent className="p-2">
+        <div className="flex items-center gap-3">
+          {/* Rank */}
+          <div className="flex items-center justify-center w-6 h-6 text-sm font-bold text-muted-foreground/70">
+            {rank}
+          </div>
+          
+          {/* Album Art & Play Button */}
           <div className="relative">
-            <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-              <Music className="w-8 h-8 text-white" />
-            </div>
-            
-            {/* Play Button Overlay */}
             <Button 
               size="sm" 
               onClick={onPlay}
-              className={`absolute inset-0 w-16 h-16 rounded-lg transition-all ${
-                isCurrent 
-                  ? 'opacity-100 bg-black/70 hover:bg-black/80' 
-                  : 'opacity-0 group-hover:opacity-100 bg-black/60 hover:bg-black/80'
-              }`}
+              className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center hover:from-purple-600 hover:to-pink-600 transition-all p-0 shadow-lg"
             >
               {isPlaying ? (
-                <Pause className="w-6 h-6 text-white" />
+                <Pause className="w-7 h-7 text-white" />
+              ) : isCurrent ? (
+                <PlayCircle className="w-7 h-7 text-white" />
               ) : (
-                <PlayCircle className="w-6 h-6 text-white" />
+                <>
+                  <Music className="w-7 h-7 text-white group-hover:hidden" />
+                  <PlayCircle className="w-7 h-7 text-white hidden group-hover:block" />
+                </>
               )}
             </Button>
           </div>
           
           {/* Track Info */}
           <div className="flex-1 min-w-0">
-            <h3 className={`font-medium truncate ${isCurrent ? 'text-purple-600' : ''}`}>
-              {track.title}
-            </h3>
-            <p className="text-sm text-muted-foreground truncate">{track.artist}</p>
-            
-            <div className="flex items-center gap-3 mt-2">
-              <Badge variant="secondary" className="text-xs">
+            <div className="flex items-center gap-2 mb-0.5">
+              <h3 className={`font-semibold text-sm truncate ${isCurrent ? 'text-purple-600' : ''}`}>
+                {track.title}
+              </h3>
+              {track.isHot && (
+                <Badge variant="destructive" className="text-xs px-1.5 py-0.5 bg-red-500 hover:bg-red-500 border-0">
+                  HOT
+                </Badge>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              <p className="text-muted-foreground truncate text-xs">{track.artist}</p>
+              <Separator orientation="vertical" className="h-2.5" />
+              <Badge variant="secondary" className="text-xs px-1 bg-muted/50">
                 {track.genre}
               </Badge>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Play className="w-3 h-3" />
-                {track.plays.toLocaleString()}
-              </div>
+            </div>
+          </div>
+          
+          {/* Duration & Stats */}
+          <div className="hidden lg:flex flex-col items-end gap-0.5 text-xs text-muted-foreground min-w-0">
+            <div className="flex items-center gap-1">
+              <Clock className="w-3 h-3" />
+              <span className="font-mono">{formatDuration(track.duration)}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Play className="w-3 h-3" />
+              <span className="font-medium">{formatPlays(track.plays)}</span>
             </div>
           </div>
           
           {/* Playing Indicator */}
           {isPlaying && (
-            <div className="flex items-center gap-1">
-              <div className="w-1 h-4 bg-purple-500 rounded-full animate-pulse" />
-              <div className="w-1 h-6 bg-purple-500 rounded-full animate-pulse delay-75" />
-              <div className="w-1 h-4 bg-purple-500 rounded-full animate-pulse delay-150" />
+            <div className="flex items-center gap-0.5 mr-2">
+              <div className="w-0.5 h-2 bg-purple-500 rounded-full animate-pulse" />
+              <div className="w-0.5 h-3 bg-purple-500 rounded-full animate-pulse delay-75" />
+              <div className="w-0.5 h-2 bg-purple-500 rounded-full animate-pulse delay-150" />
             </div>
-          )}        </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex items-center gap-1">
+            {/* Zap Button */}
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={onZap}
+              className="border-yellow-200 text-yellow-600 hover:bg-yellow-50 hover:border-yellow-300 dark:border-yellow-800 dark:text-yellow-400 dark:hover:bg-yellow-950/20 transition-all px-2 py-1 text-xs"
+            >
+              <Zap className="w-3 h-3 mr-1" />
+              Zap
+            </Button>
+
+            {/* More Options */}
+            <Button variant="ghost" size="sm" className="opacity-60 hover:opacity-100 transition-opacity p-1">
+              <MoreHorizontal className="w-3 h-3" />
+            </Button>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
