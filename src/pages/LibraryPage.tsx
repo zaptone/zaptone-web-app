@@ -111,9 +111,9 @@ export function LibraryPage() {
         <div className="space-y-2">
           {items.map((item) => (
             <div key={item.id} className="flex items-center gap-4 p-3 rounded-lg hover:bg-accent/50 cursor-pointer group">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center relative">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center relative [&_svg]:!size-6">
                 <Music className="w-6 h-6 text-white" />
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity [&_svg]:!size-7">
                   <PlayCircle className="w-7 h-7 text-white" />
                 </div>
               </div>

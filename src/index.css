@@ -180,3 +180,34 @@
 .animate-zap-zoom {
   animation: zap-zoom 2s ease-in-out infinite;
 }
+
+/* Heart love animation - Simple and clean ripple effect */
+@keyframes heart-ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+@keyframes zap-ripple {
+  0% {
+    transform: scale(0);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.animate-heart-ripple {
+  animation: heart-ripple 0.8s ease-out forwards;
+}
+
+.animate-zap-ripple {
+  animation: zap-ripple 0.8s ease-out forwards;
+}

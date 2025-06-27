@@ -48,6 +48,7 @@ const TRENDING_TRACKS = [
     genre: 'Electronic',
     duration: 222, // in seconds (3:42)
     plays: 2847295,
+    likes: 24567,
     isHot: true,
     lnAddress: 'milad@getalby.com'
   },
@@ -59,6 +60,7 @@ const TRENDING_TRACKS = [
     genre: 'Indie Pop',
     duration: 258, // in seconds (4:18)
     plays: 1923847,
+    likes: 18439,
     isHot: true,
     lnAddress: 'milad@getalby.com'
   },
@@ -70,6 +72,7 @@ const TRENDING_TRACKS = [
     genre: 'Ambient',
     duration: 323, // in seconds (5:23)
     plays: 1456729,
+    likes: 12234,
     isHot: false,
     lnAddress: 'milad@getalby.com'
   },
@@ -81,6 +84,7 @@ const TRENDING_TRACKS = [
     genre: 'Synthwave',
     duration: 235, // in seconds (3:55)
     plays: 3291847,
+    likes: 31287,
     isHot: true,
     lnAddress: 'milad@getalby.com'
   },
@@ -92,6 +96,7 @@ const TRENDING_TRACKS = [
     genre: 'Nature',
     duration: 372, // in seconds (6:12)
     plays: 987654,
+    likes: 8765,
     isHot: false,
     lnAddress: 'milad@getalby.com'
   },
@@ -103,6 +108,7 @@ const TRENDING_TRACKS = [
     genre: 'Electronic',
     duration: 247, // in seconds (4:07)
     plays: 2156789,
+    likes: 21456,
     isHot: true,
     lnAddress: 'milad@getalby.com'
   }
@@ -348,6 +354,7 @@ interface TrendingTrackCardProps {
     genre: string;
     duration: number;
     plays: number;
+    likes: number;
     isHot: boolean;
   };
   rank: number;
@@ -361,18 +368,37 @@ interface TrendingTrackCardProps {
 
 function TrendingTrackCard({ track, rank, onPlay, onZap, isPlaying, isCurrent, formatPlays, formatDuration }: TrendingTrackCardProps) {
   const { toast } = useToast();
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(track.likes);
+  const [showHeartAnimation, setShowHeartAnimation] = useState(false);
+  const [showZapAnimation, setShowZapAnimation] = useState(false);
+
+  const handleLike = () => {
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    setLikeCount(prev => newLikedState ? prev + 1 : prev - 1);
+    
+    if (newLikedState) {
+      // Show heart animation
+      setShowHeartAnimation(true);
+      setTimeout(() => setShowHeartAnimation(false), 800); // Shorter duration for simple animation
+      
+      toast({
+        title: "❤️ Liked!",
+        description: `"${track.title}" has been added to your liked songs`,
+      });
+    } else {
+      toast({
+        title: "Removed from Liked Songs",
+        description: `"${track.title}" has been removed from your liked songs`,
+      });
+    }
+  };
 
   const handleAddToPlaylist = () => {
     toast({
       title: "Added to Playlist",
       description: `"${track.title}" has been added to your playlist`,
-    });
-  };
-
-  const handleLike = () => {
-    toast({
-      title: "Added to Liked Songs",
-      description: `"${track.title}" has been added to your liked songs`,
     });
   };
 
@@ -404,119 +430,156 @@ function TrendingTrackCard({ track, rank, onPlay, onZap, isPlaying, isCurrent, f
       isCurrent ? 'bg-muted/30 shadow-sm' : ''
     }`}>
       <CardContent className="p-2">
-        <div className="flex items-center gap-3">
-          {/* Rank */}
-          <div className="flex items-center justify-center w-6 h-6 text-sm font-bold text-muted-foreground/70">
-            {rank}
-          </div>
-          
-          {/* Album Art & Play Button */}
-          <div className="relative">
-            <Button 
-              size="sm" 
-              onClick={onPlay}
-              className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center hover:from-purple-600 hover:to-pink-600 transition-all p-0 shadow-lg"
-            >
-              {isPlaying ? (
-                <Pause className="w-7 h-7 text-white" />
-              ) : isCurrent ? (
-                <PlayCircle className="w-7 h-7 text-white" />
-              ) : (
-                <>
-                  <Music className="w-7 h-7 text-white group-hover:hidden" />
-                  <PlayCircle className="w-7 h-7 text-white hidden group-hover:block" />
-                </>
-              )}
-            </Button>
-          </div>
-          
-          {/* Track Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-0.5">
-              <h3 className={`font-semibold text-sm truncate ${isCurrent ? 'text-purple-600' : ''}`}>
-                {track.title}
-              </h3>
-              {track.isHot && (
-                <Badge variant="destructive" className="text-xs px-1.5 py-0.5 bg-red-500 hover:bg-red-500 border-0">
-                  HOT
+        <div className="relative">
+          {/* Main Content Row */}
+          <div className="flex items-center gap-3">
+            {/* Rank */}
+            <div className="flex items-center justify-center w-6 h-6 text-sm font-bold text-muted-foreground/70">
+              {rank}
+            </div>
+            
+            {/* Album Art & Play Button */}
+            <div className="relative">
+              <Button 
+                size="sm" 
+                onClick={onPlay}
+                className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center hover:from-purple-600 hover:to-pink-600 transition-all p-0 shadow-lg [&_svg]:!size-6"
+              >
+                {isPlaying ? (
+                  <Pause className="w-6 h-6 text-white" />
+                ) : isCurrent ? (
+                  <PlayCircle className="w-6 h-6 text-white" />
+                ) : (
+                  <>
+                    <Music className="w-6 h-6 text-white group-hover:hidden" />
+                    <PlayCircle className="w-6 h-6 text-white hidden group-hover:block" />
+                  </>
+                )}
+              </Button>
+            </div>
+            
+            {/* Track Info */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className={`font-semibold text-sm truncate ${isCurrent ? 'text-purple-600' : ''}`}>
+                  {track.title}
+                </h3>
+                {track.isHot && (
+                  <Badge variant="destructive" className="text-xs px-1.5 py-0.5 bg-red-500 hover:bg-red-500 border-0">
+                    HOT
+                  </Badge>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <p className="text-muted-foreground truncate text-xs">{track.artist}</p>
+                <Separator orientation="vertical" className="h-2.5" />
+                <Badge variant="secondary" className="text-xs px-1 bg-muted/50">
+                  {track.genre}
                 </Badge>
-              )}
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <p className="text-muted-foreground truncate text-xs">{track.artist}</p>
-              <Separator orientation="vertical" className="h-2.5" />
-              <Badge variant="secondary" className="text-xs px-1 bg-muted/50">
-                {track.genre}
-              </Badge>
+            
+            {/* Duration & Stats */}
+            <div className="hidden lg:flex flex-col items-end gap-0.5 text-xs text-muted-foreground min-w-0">
+              <div className="flex items-center gap-1">
+                <Clock className="w-3 h-3" />
+                <span className="font-mono">{formatDuration(track.duration)}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Play className="w-3 h-3" />
+                <span className="font-medium">{formatPlays(track.plays)}</span>
+              </div>
             </div>
-          </div>
-          
-          {/* Duration & Stats */}
-          <div className="hidden lg:flex flex-col items-end gap-0.5 text-xs text-muted-foreground min-w-0">
-            <div className="flex items-center gap-1">
-              <Clock className="w-3 h-3" />
-              <span className="font-mono">{formatDuration(track.duration)}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Play className="w-3 h-3" />
-              <span className="font-medium">{formatPlays(track.plays)}</span>
-            </div>
-          </div>
-          
-          {/* Playing Indicator */}
-          {isPlaying && (
-            <div className="flex items-center gap-0.5 mr-2">
-              <div className="w-0.5 h-2 bg-purple-500 rounded-full animate-pulse" />
-              <div className="w-0.5 h-3 bg-purple-500 rounded-full animate-pulse delay-75" />
-              <div className="w-0.5 h-2 bg-purple-500 rounded-full animate-pulse delay-150" />
-            </div>
-          )}
+            
+            {/* Playing Indicator */}
+            {isPlaying && (
+              <div className="flex items-center gap-0.5 mr-2">
+                <div className="w-0.5 h-2 bg-purple-500 rounded-full animate-pulse" />
+                <div className="w-0.5 h-3 bg-purple-500 rounded-full animate-pulse delay-75" />
+                <div className="w-0.5 h-2 bg-purple-500 rounded-full animate-pulse delay-150" />
+              </div>
+            )}
 
-          {/* Action Buttons */}
-          <div className="flex items-center gap-1">
-            {/* Zap Button */}
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={onZap}
-              className="text-yellow-600 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:bg-yellow-950/20 transition-all px-2 py-1 text-xs"
-            >
-              <Zap className="w-3 h-3 mr-1" />
-              Zap
-            </Button>
-
-            {/* More Options */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="opacity-60 hover:opacity-100 transition-opacity p-1">
-                  <MoreHorizontal className="w-3 h-3" />
+            {/* Action Buttons */}
+            <div className="flex items-center gap-1">
+              {/* Like Button */}
+              <div className="relative">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleLike}
+                  className={`transition-all px-2 py-1 text-xs cursor-pointer flex items-center gap-1 ${
+                    isLiked 
+                      ? 'text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20' 
+                      : 'text-muted-foreground hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/20'
+                  }`}
+                >
+                  <Heart className={`w-3 h-3 transition-all ${isLiked ? 'fill-red-500' : ''}`} />
+                  <span className="text-xs font-medium">{formatPlays(likeCount)}</span>
                 </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handleLike}>
-                  <Heart className="w-4 h-4 mr-2" />
-                  Add to Liked Songs
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleAddToPlaylist}>
-                  <ListPlus className="w-4 h-4 mr-2" />
-                  Add to Playlist
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleShare}>
-                  <Share className="w-4 h-4 mr-2" />
-                  Share Track
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleDownload}>
-                  <Download className="w-4 h-4 mr-2" />
-                  Download
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleReport} className="text-destructive">
-                  <Flag className="w-4 h-4 mr-2" />
-                  Report
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                
+                {/* Heart Animation */}
+                {showHeartAnimation && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-8 h-8 border-2 border-red-500 rounded-full animate-heart-ripple" />
+                  </div>
+                )}
+              </div>
+
+              {/* Zap Button */}
+              <div className="relative">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    setShowZapAnimation(true);
+                    setTimeout(() => setShowZapAnimation(false), 800);
+                    onZap();
+                  }}
+                  className="text-yellow-600 hover:bg-yellow-50 dark:text-yellow-400 dark:hover:bg-yellow-950/20 transition-all px-2 py-1 text-xs cursor-pointer"
+                >
+                  <Zap className="w-3 h-3 mr-1" />
+                  Zap
+                </Button>
+
+                {/* Zap Animation */}
+                {showZapAnimation && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="w-8 h-8 border-2 border-yellow-500 rounded-full animate-zap-ripple" />
+                  </div>
+                )}
+              </div>
+
+              {/* More Options - Aligned with action buttons */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="opacity-60 hover:opacity-100 transition-opacity p-1">
+                    <MoreHorizontal className="w-3 h-3" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48">
+                  <DropdownMenuItem onClick={handleAddToPlaylist}>
+                    <ListPlus className="w-4 h-4 mr-2" />
+                    Add to Playlist
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleShare}>
+                    <Share className="w-4 h-4 mr-2" />
+                    Share Track
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleDownload}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Download
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={handleReport} className="text-destructive">
+                    <Flag className="w-4 h-4 mr-2" />
+                    Report
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </CardContent>
