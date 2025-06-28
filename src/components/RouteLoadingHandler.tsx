@@ -4,7 +4,7 @@ import { useGlobalLoading } from '@/hooks/useGlobalLoading';
 
 export function RouteLoadingHandler() {
   const location = useLocation();
-  const { showLoading, hideLoading, markPageAsLoaded, isPageLoaded } = useGlobalLoading();
+  const { showLoading, hideLoading, markPageAsLoaded, isPageLoaded, clearLoadedPages } = useGlobalLoading();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isFirstLoad = useRef(true);
 
@@ -61,6 +61,20 @@ export function RouteLoadingHandler() {
       clearInterval(progressInterval);
     };
   }, [location.pathname, showLoading, hideLoading, markPageAsLoaded, isPageLoaded]);
+
+  // Clear loadedPages on first mount in a session and on browser refresh
+  useEffect(() => {
+    let cleared = false;
+    if (!sessionStorage.getItem('zaptone_loadedPages_cleared')) {
+      clearLoadedPages();
+      sessionStorage.setItem('zaptone_loadedPages_cleared', '1');
+      cleared = true;
+    }
+    const nav = performance.getEntriesByType('navigation')[0] as PerformanceNavigationTiming | undefined;
+    if (nav?.type === 'reload' && !cleared) {
+      clearLoadedPages();
+    }
+  }, [clearLoadedPages]);
 
   return null;
 }
