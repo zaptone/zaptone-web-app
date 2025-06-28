@@ -4,6 +4,7 @@ interface LoadingState {
   isLoading: boolean;
   message: string;
   progress: number;
+  loadedPages: Set<string>;
 }
 
 interface LoadingStore extends LoadingState {
@@ -11,12 +12,16 @@ interface LoadingStore extends LoadingState {
   hideLoading: () => void;
   updateProgress: (progress: number) => void;
   updateMessage: (message: string) => void;
+  markPageAsLoaded: (path: string) => void;
+  isPageLoaded: (path: string) => boolean;
+  clearLoadedPages: () => void;
 }
 
-export const useGlobalLoading = create<LoadingStore>((set) => ({
+export const useGlobalLoading = create<LoadingStore>((set, get) => ({
   isLoading: false,
   message: '',
   progress: 0,
+  loadedPages: new Set<string>(),
 
   showLoading: (message = 'Loading...', progress = 0) => {
     set({ isLoading: true, message, progress });
@@ -32,6 +37,22 @@ export const useGlobalLoading = create<LoadingStore>((set) => ({
 
   updateMessage: (message: string) => {
     set({ message });
+  },
+
+  markPageAsLoaded: (path: string) => {
+    const { loadedPages } = get();
+    const newLoadedPages = new Set(loadedPages);
+    newLoadedPages.add(path);
+    set({ loadedPages: newLoadedPages });
+  },
+
+  isPageLoaded: (path: string) => {
+    const { loadedPages } = get();
+    return loadedPages.has(path);
+  },
+
+  clearLoadedPages: () => {
+    set({ loadedPages: new Set<string>() });
   },
 }));
 

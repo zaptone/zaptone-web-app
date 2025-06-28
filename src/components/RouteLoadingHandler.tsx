@@ -4,7 +4,7 @@ import { useGlobalLoading } from '@/hooks/useGlobalLoading';
 
 export function RouteLoadingHandler() {
   const location = useLocation();
-  const { showLoading, hideLoading } = useGlobalLoading();
+  const { showLoading, hideLoading, markPageAsLoaded, isPageLoaded } = useGlobalLoading();
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
   const isFirstLoad = useRef(true);
 
@@ -12,6 +12,14 @@ export function RouteLoadingHandler() {
     // Skip loading on initial page load
     if (isFirstLoad.current) {
       isFirstLoad.current = false;
+      // Mark the initial page as loaded
+      markPageAsLoaded(location.pathname);
+      return;
+    }
+
+    // Check if this page has been loaded before
+    if (isPageLoaded(location.pathname)) {
+      // Page has been loaded before, skip loading animation
       return;
     }
 
@@ -20,7 +28,7 @@ export function RouteLoadingHandler() {
       clearTimeout(timeoutRef.current);
     }
 
-    // Show loading immediately
+    // Show loading immediately for new pages
     showLoading('Loading page...', 0);
 
     // Simulate loading progress
@@ -38,10 +46,11 @@ export function RouteLoadingHandler() {
     timeoutRef.current = setTimeout(() => {
       clearInterval(progressInterval);
       showLoading('Loading page...', 100);
-      
       // Final hide after showing 100%
       setTimeout(() => {
         hideLoading();
+        // Mark this page as loaded so it won't show loading again
+        markPageAsLoaded(location.pathname);
       }, 200);
     }, 300 + Math.random() * 200); // Random delay between 300-500ms
 
@@ -51,7 +60,7 @@ export function RouteLoadingHandler() {
       }
       clearInterval(progressInterval);
     };
-  }, [location.pathname, showLoading, hideLoading]);
+  }, [location.pathname, showLoading, hideLoading, markPageAsLoaded, isPageLoaded]);
 
   return null;
 }
