@@ -55,7 +55,8 @@ export function Sidebar({ className = '' }: SidebarProps) {
     { name: 'Trending', href: '/trending', icon: TrendingUp },
     { name: 'Radio', href: '/radio', icon: Radio },
     { name: 'Charts', href: '/charts', icon: Disc3 },
-    { name: 'New Releases', href: '/new', icon: Clock }
+    { name: 'New Releases', href: '/new', icon: Clock },
+    { name: 'Invest', href: '/discover', icon: Zap }, // Add Discover/Invest
   ];
 
   const yourLibrary = [
@@ -179,9 +180,10 @@ export function Sidebar({ className = '' }: SidebarProps) {
                 { name: 'Electronic Mix', type: 'Playlist', tracks: 18 },
                 { name: 'Jazz Collection', type: 'Playlist', tracks: 31 }
               ].map((playlist, index) => (
-                <div 
+                <button
                   key={playlist.name}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/40 cursor-pointer group"
+                  type="button"
+                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-muted/40 cursor-pointer group w-full text-left focus:outline-none focus:ring-2 focus:ring-purple-500"
                   onClick={() => navigate(`/playlist/${index + 1}`)}
                 >
                   <div className="w-10 h-10 bg-gradient-to-br from-purple-400 to-indigo-500 rounded-lg flex items-center justify-center">
@@ -191,7 +193,7 @@ export function Sidebar({ className = '' }: SidebarProps) {
                     <p className="text-sm font-medium truncate">{playlist.name}</p>
                     <p className="text-xs text-muted-foreground">{playlist.tracks} tracks</p>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
           </div>        </div>
