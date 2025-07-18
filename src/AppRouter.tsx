@@ -8,7 +8,7 @@ import { SearchPage } from "./pages/SearchPage";
 import { LibraryPage } from "./pages/LibraryPage";
 import { UploadPage } from "./pages/UploadPage";
 import { LikedSongsPage } from "./pages/LikedSongsPage";
-import { ProfilePage } from "./pages/ProfilePage";
+import ProfilePage from "./pages/ProfilePage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { PremiumPage } from "./pages/PremiumPage";
 import { TrendingPage } from "./pages/TrendingPage";

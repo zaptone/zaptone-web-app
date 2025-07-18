@@ -46,7 +46,7 @@ export default function HomePage() {
   });
   const navigate = useNavigate();
 
-  const handlePlayTrack = (track: any) => {
+  const handlePlayTrack = (track: { id: string; title: string; artist: string; audioUrl: string; duration?: number; coverUrl?: string }) => {
     const isCurrentTrack = playerState.currentTrack?.id === track.id;
     
     if (isCurrentTrack && playerState.isPlaying) {
