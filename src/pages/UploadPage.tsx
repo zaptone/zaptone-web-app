@@ -1,17 +1,23 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Progress } from '@/components/ui/progress';
 import { useGlobalLoading, withLoading } from '@/hooks/useGlobalLoading';
+import { useUploadFile } from '@/hooks/useUploadFile';
+import { useNostrPublish } from '@/hooks/useNostrPublish';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { useToast } from '@/hooks/useToast';
+import { MusicEventBuilder } from '@/lib/musicEvents';
 import { 
   Upload, 
   Music, 
   Image,
   X,
   Check,
-  AlertCircle
+  AlertCircle,
+  Loader2
 } from 'lucide-react';
 
 interface UploadFile {
@@ -19,18 +25,117 @@ interface UploadFile {
   file: File;
   progress: number;
   status: 'uploading' | 'completed' | 'error';
+  url?: string;
+  duration?: number;
 }
 
 export function UploadPage() {
   const [dragActive, setDragActive] = useState(false);
   const [uploadFiles, setUploadFiles] = useState<UploadFile[]>([]);
+  const [coverUrl, setCoverUrl] = useState<string>('');
   const [trackInfo, setTrackInfo] = useState({
     title: '',
     artist: '',
     album: '',
     genre: '',
-    description: ''
+    description: '',
+    license: 'All Rights Reserved',
+    price: ''
   });
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const coverInputRef = useRef<HTMLInputElement>(null);
+  
+  const { user } = useCurrentUser();
+  const { mutateAsync: uploadFile, isPending: isUploading } = useUploadFile();
+  const { mutateAsync: publishEvent, isPending: isPublishing } = useNostrPublish();
+  const { toast } = useToast();
+  const { updateProgress, updateMessage } = useGlobalLoading();
+
+  // Get audio duration from file
+  const getAudioDuration = (file: File): Promise<number> => {
+    return new Promise((resolve) => {
+      const audio = new Audio();
+      audio.addEventListener('loadedmetadata', () => {
+        resolve(Math.floor(audio.duration));
+      });
+      audio.addEventListener('error', () => {
+        resolve(0); // Default duration if unable to detect
+      });
+      audio.src = URL.createObjectURL(file);
+    });
+  };
+
+  // Upload file to Blossom server
+  const uploadFileToServer = async (file: File): Promise<string> => {
+    const tags = await uploadFile(file);
+    // Extract URL from the upload response
+    const [[, url]] = tags;
+    return url;
+  };
+
+  // Upload audio file with progress tracking
+  const uploadAudioFile = async (file: File, fileId: string) => {
+    try {
+      // Update progress to show uploading
+      setUploadFiles(prev => prev.map(f => 
+        f.id === fileId 
+          ? { ...f, status: 'uploading' as const, progress: 50 }
+          : f
+      ));
+
+      // Get audio duration
+      const duration = await getAudioDuration(file);
+      
+      // Upload to Blossom server
+      const url = await uploadFileToServer(file);
+      
+      // Update file state with URL and duration
+      setUploadFiles(prev => prev.map(f => 
+        f.id === fileId 
+          ? { ...f, status: 'completed' as const, progress: 100, url, duration }
+          : f
+      ));
+      
+      toast({
+        title: 'Success',
+        description: `${file.name} uploaded successfully`,
+      });
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setUploadFiles(prev => prev.map(f => 
+        f.id === fileId 
+          ? { ...f, status: 'error' as const }
+          : f
+      ));
+      
+      toast({
+        title: 'Error',
+        description: `Failed to upload ${file.name}`,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  // Upload cover image
+  const uploadCoverImage = async (file: File) => {
+    try {
+      const url = await uploadFileToServer(file);
+      setCoverUrl(url);
+      toast({
+        title: 'Success',
+        description: 'Cover image uploaded successfully',
+      });
+    } catch (error) {
+      console.error('Cover upload failed:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to upload cover image',
+        variant: 'destructive',
+      });
+    }
+  };
+
   const handleDrag = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -39,59 +144,6 @@ export function UploadPage() {
     } else if (e.type === "dragleave") {
       setDragActive(false);
     }
-  }, []);
-
-  const { updateProgress, updateMessage } = useGlobalLoading();
-
-  const handlePublish = async () => {
-    try {
-      await withLoading(async () => {
-        // Simulate publishing process with progress updates
-        updateMessage('Uploading files...');
-        updateProgress(20);
-        await new Promise(resolve => setTimeout(resolve, 500));
-        
-        updateMessage('Processing audio...');
-        updateProgress(50);
-        await new Promise(resolve => setTimeout(resolve, 700));
-        
-        updateMessage('Publishing to network...');
-        updateProgress(80);
-        await new Promise(resolve => setTimeout(resolve, 600));
-        
-        updateMessage('Finalizing...');
-        updateProgress(95);
-        await new Promise(resolve => setTimeout(resolve, 300));
-        
-        // TODO: Actual publishing logic here
-        console.log('Publishing track:', trackInfo);
-      }, 'Publishing track...', (progress) => updateProgress(progress));
-      
-      // Success feedback could go here
-      console.log('Track published successfully!');
-    } catch (error) {
-      console.error('Failed to publish track:', error);
-    }
-  };
-
-  const simulateUpload = useCallback((fileId: string) => {
-    const interval = setInterval(() => {
-      setUploadFiles(prev => prev.map(file => {
-        if (file.id === fileId) {
-          const newProgress = file.progress + 10;
-          return {
-            ...file,
-            progress: newProgress,
-            status: newProgress >= 100 ? 'completed' : 'uploading'
-          };
-        }
-        return file;
-      }));
-    }, 200);
-
-    setTimeout(() => {
-      clearInterval(interval);
-    }, 2000);
   }, []);
 
   const handleFiles = useCallback((files: FileList) => {
@@ -105,12 +157,10 @@ export function UploadPage() {
         };
         
         setUploadFiles(prev => [...prev, newFile]);
-        
-        // Simulate upload progress
-        simulateUpload(newFile.id);
+        uploadAudioFile(file, newFile.id);
       }
     });
-  }, [simulateUpload]);
+  }, []);
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -121,6 +171,103 @@ export function UploadPage() {
       handleFiles(e.dataTransfer.files);
     }
   }, [handleFiles]);
+
+  const handlePublish = async () => {
+    if (!user) {
+      toast({
+        title: 'Error',
+        description: 'You must be logged in to upload music',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (uploadFiles.length === 0 || !trackInfo.title || !trackInfo.artist) {
+      toast({
+        title: 'Error',
+        description: 'Please provide track title, artist, and upload an audio file',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    const completedFiles = uploadFiles.filter(f => f.status === 'completed');
+    if (completedFiles.length === 0) {
+      toast({
+        title: 'Error',
+        description: 'Please wait for file uploads to complete',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      await withLoading(async () => {
+        updateMessage('Publishing track to Nostr...');
+        updateProgress(20);
+
+        // Use the first completed audio file
+        const audioFile = completedFiles[0];
+        
+        // Generate unique track ID
+        const trackId = `${trackInfo.title.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}`;
+        
+        // Create the music track event
+        const trackEvent = MusicEventBuilder.createTrackEvent({
+          id: trackId,
+          title: trackInfo.title,
+          artist: trackInfo.artist,
+          duration: audioFile.duration || 0,
+          genre: trackInfo.genre || 'Unknown',
+          audioUrl: audioFile.url!,
+          coverUrl: coverUrl || undefined,
+          description: trackInfo.description,
+          license: trackInfo.license,
+          price: trackInfo.price ? parseInt(trackInfo.price) : undefined,
+          releaseDate: new Date().toISOString().split('T')[0],
+        });
+
+        updateProgress(50);
+        updateMessage('Publishing to network...');
+
+        // Publish the event
+        await publishEvent({
+          kind: trackEvent.kind!,
+          content: trackEvent.content!,
+          tags: trackEvent.tags!,
+          created_at: Math.floor(Date.now() / 1000),
+        });
+
+        updateProgress(100);
+        updateMessage('Track published successfully!');
+
+        // Reset form
+        setUploadFiles([]);
+        setCoverUrl('');
+        setTrackInfo({
+          title: '',
+          artist: '',
+          album: '',
+          genre: '',
+          description: '',
+          license: 'All Rights Reserved',
+          price: ''
+        });
+
+        toast({
+          title: 'Success',
+          description: 'Your track has been published to the network!',
+        });
+      }, 'Publishing track...', (progress) => updateProgress(progress));
+    } catch (error) {
+      console.error('Failed to publish track:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to publish track. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const removeFile = (fileId: string) => {
     setUploadFiles(prev => prev.filter(file => file.id !== fileId));
@@ -164,13 +311,13 @@ export function UploadPage() {
               or click to browse files. Supports MP3, WAV, FLAC, and more.
             </p>
             <Button 
-              onClick={() => document.getElementById('file-input')?.click()}
+              onClick={() => fileInputRef.current?.click()}
               className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
             >
               Choose Files
             </Button>
             <input
-              id="file-input"
+              ref={fileInputRef}
               type="file"
               multiple
               accept="audio/*"
@@ -269,6 +416,27 @@ export function UploadPage() {
                 onChange={(e) => setTrackInfo(prev => ({ ...prev, genre: e.target.value }))}
               />
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="license">License</Label>
+              <Input
+                id="license"
+                placeholder="License type"
+                value={trackInfo.license}
+                onChange={(e) => setTrackInfo(prev => ({ ...prev, license: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="price">Price (optional, in sats)</Label>
+              <Input
+                id="price"
+                type="number"
+                placeholder="0"
+                value={trackInfo.price}
+                onChange={(e) => setTrackInfo(prev => ({ ...prev, price: e.target.value }))}
+              />
+            </div>
           </div>
 
           <div className="space-y-2">
@@ -287,13 +455,61 @@ export function UploadPage() {
         <div className="space-y-4">
           <Label className="text-lg font-semibold">Artwork (Optional)</Label>
           <div className="border-2 border-dashed rounded-lg p-6 text-center">
-            <Image className="w-8 h-8 mx-auto mb-2 text-muted-foreground" />
-            <p className="text-sm text-muted-foreground mb-2">
-              Upload cover art for your track
-            </p>
-            <Button variant="outline" size="sm">
-              Choose Image
-            </Button>
+            {coverUrl ? (
+              <div className="space-y-4">
+                <div className="w-32 h-32 mx-auto rounded-lg overflow-hidden">
+                  <img 
+                    src={coverUrl} 
+                    alt="Cover art" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="flex gap-2 justify-center">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => coverInputRef.current?.click()}
+                  >
+                    Change Image
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setCoverUrl('')}
+                  >
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <Image className="w-8 h-8 mx-auto text-muted-foreground" />
+                <p className="text-sm text-muted-foreground mb-2">
+                  Upload cover art for your track
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => coverInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  {isUploading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  Choose Image
+                </Button>
+              </div>
+            )}
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) {
+                  uploadCoverImage(file);
+                }
+              }}
+            />
           </div>
         </div>
 
@@ -302,12 +518,19 @@ export function UploadPage() {
           <Button 
             size="lg" 
             className="flex-1 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700"
-            disabled={!trackInfo.title || !trackInfo.artist || uploadFiles.length === 0}
+            disabled={!trackInfo.title || !trackInfo.artist || uploadFiles.length === 0 || isUploading || isPublishing}
             onClick={handlePublish}
           >
-            Publish Track
+            {(isUploading || isPublishing) && (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            )}
+            {isPublishing ? 'Publishing...' : 'Publish Track'}
           </Button>
-          <Button variant="outline" size="lg">
+          <Button 
+            variant="outline" 
+            size="lg"
+            disabled={isUploading || isPublishing}
+          >
             Save as Draft
           </Button>
         </div>
