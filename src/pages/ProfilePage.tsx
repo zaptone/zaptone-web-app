@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { AudioPlayer } from '@/components/AudioPlayer';
+import { useUserTracks } from '@/hooks/useMusicTracks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -25,6 +27,8 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useToast } from '@/hooks/useToast';
 
 export function ProfilePage() {
+  const [playingTrackId, setPlayingTrackId] = useState<string | null>(null);
+  const [playerSeek] = useState<number | undefined>(undefined);
   const { user, metadata } = useCurrentUser();
   const { toast } = useToast();
   const [isEditing, setIsEditing] = useState(false);
@@ -34,12 +38,16 @@ export function ProfilePage() {
     name: metadata?.name || '',
     about: metadata?.about || '',
     picture: metadata?.picture || '',
+    banner: metadata?.banner || '',
     nip05: metadata?.nip05 || '',
     website: metadata?.website || ''
   });
 
   const userDisplayName = metadata?.name || `User ${user?.pubkey.slice(0, 8)}`;
   const userPicture = metadata?.picture;
+  const userBanner = metadata?.banner;
+
+  const { data: musicList = [], isLoading: isMusicLoading } = useUserTracks(user?.pubkey);
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -72,6 +80,7 @@ export function ProfilePage() {
       name: metadata?.name || '',
       about: metadata?.about || '',
       picture: metadata?.picture || '',
+      banner: metadata?.banner || '',
       nip05: metadata?.nip05 || '',
       website: metadata?.website || ''
     });
@@ -126,10 +135,9 @@ export function ProfilePage() {
         </div>
 
         <Tabs defaultValue="profile" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="music">Music</TabsTrigger>
-            <TabsTrigger value="security">Security</TabsTrigger>
           </TabsList>
 
           {/* Profile Tab */}
@@ -142,6 +150,25 @@ export function ProfilePage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
+                {/* Banner Section */}
+                <div className="mb-4">
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <Label htmlFor="banner">Banner URL</Label>
+                      <Input
+                        id="banner"
+                        value={editData.banner}
+                        onChange={(e) => setEditData(prev => ({ ...prev, banner: e.target.value }))}
+                        placeholder="https://yourbanner.com/banner.jpg"
+                      />
+                    </div>
+                  ) : (
+                    userBanner && (
+                      <img src={userBanner} alt="Banner" className="w-full h-32 object-cover rounded-lg mb-2" />
+                    )
+                  )}
+                </div>
+
                 {/* Avatar Section */}
                 <div className="flex items-center gap-6">
                   <div className="relative">
@@ -156,6 +183,7 @@ export function ProfilePage() {
                         size="sm" 
                         className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
                         variant="secondary"
+                        // TODO: Implement file upload logic
                       >
                         <Camera className="w-4 h-4" />
                       </Button>
@@ -283,7 +311,7 @@ export function ProfilePage() {
                       <Music className="w-6 h-6 text-purple-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">142</p>
+                      <p className="text-2xl font-bold">{musicList.length}</p>
                       <p className="text-sm text-muted-foreground">Tracks Uploaded</p>
                     </div>
                   </div>
@@ -297,7 +325,7 @@ export function ProfilePage() {
                       <Heart className="w-6 h-6 text-red-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">89</p>
+                      <p className="text-2xl font-bold">0</p>
                       <p className="text-sm text-muted-foreground">Liked Songs</p>
                     </div>
                   </div>
@@ -311,7 +339,12 @@ export function ProfilePage() {
                       <Upload className="w-6 h-6 text-green-500" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold">1.2k</p>
+                      <p className="text-2xl font-bold">{
+                        musicList.reduce((acc: number, m: typeof musicList[0]) => {
+                          const playsTag = m.event.tags.find((t: string[]) => t[0] === 'plays');
+                          return acc + (playsTag ? parseInt(playsTag[1]) : 0);
+                        }, 0)
+                      }</p>
                       <p className="text-sm text-muted-foreground">Total Plays</p>
                     </div>
                   </div>
@@ -321,49 +354,66 @@ export function ProfilePage() {
 
             <Card>
               <CardHeader>
-                <CardTitle>Recent Uploads</CardTitle>
-                <CardDescription>Your latest music submissions</CardDescription>
+                <CardTitle>My Music List</CardTitle>
+                <CardDescription>My uploaded tracks</CardDescription>
               </CardHeader>
               <CardContent>
-                <p className="text-muted-foreground text-center py-8">
-                  No music uploads yet. Start sharing your music!
-                </p>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Security Tab */}
-          <TabsContent value="security" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Security</CardTitle>
-                <CardDescription>
-                  Manage your Nostr keys and security settings
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label>Private Key Management</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Your private key is securely stored and never transmitted. 
-                    Always keep a backup in a safe place.
+                {isMusicLoading ? (
+                  <p className="text-muted-foreground text-center py-8">Loading...</p>
+                ) : musicList.length === 0 ? (
+                  <p className="text-muted-foreground text-center py-8">
+                    No music uploads yet. Start sharing your music!
                   </p>
-                  <Button variant="outline">
-                    Export Private Key
-                  </Button>
-                </div>
-
-                <Separator />
-
-                <div className="space-y-2">
-                  <Label>Connected Relays</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Manage the relays you're connected to for publishing and receiving events.
-                  </p>
-                  <Button variant="outline">
-                    Manage Relays
-                  </Button>
-                </div>
+                ) : (
+                  <ul className="divide-y">
+                    {musicList.map((track: typeof musicList[0]) => {
+                      const isPlaying = playingTrackId === track.id;
+                      return (
+                        <li key={track.id} className="py-3 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {track.coverUrl && (
+                              <img src={track.coverUrl} alt={track.title} className="w-10 h-10 rounded object-cover" />
+                            )}
+                            <div>
+                              <span className="font-medium">{track.title}</span>
+                              <span className="block text-xs text-muted-foreground">{track.artist}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs text-muted-foreground">
+                              Plays: {
+                                (() => {
+                                  const playsTag = track.event.tags.find((t: string[]) => t[0] === 'plays');
+                                  return playsTag ? playsTag[1] : '0';
+                                })()
+                              } | Duration: {track.duration}s
+                            </span>
+                            {track.audioUrl && (
+                              <>
+                                <button
+                                  className={`ml-2 px-2 py-1 rounded text-xs ${isPlaying ? 'bg-green-500 text-white' : 'bg-muted'}`}
+                                  onClick={() => setPlayingTrackId(isPlaying ? null : track.id)}
+                                >
+                                  {isPlaying ? 'Pause' : 'Play'}
+                                </button>
+                                {isPlaying && (
+                                  <AudioPlayer
+                                    track={{ id: track.id, title: track.title, artist: track.artist, url: track.audioUrl }}
+                                    isPlaying={isPlaying}
+                                    onTimeUpdate={() => {}}
+                                    onPlay={() => {}}
+                                    onPause={() => setPlayingTrackId(null)}
+                                    seekTime={playerSeek}
+                                  />
+                                )}
+                              </>
+                            )}
+                          </div>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
