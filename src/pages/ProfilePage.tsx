@@ -441,22 +441,29 @@ export default function ProfilePage() {
                       </div>
                     </div>
 
-                    {/* Hidden File Inputs */}
+                    <Label htmlFor="profile-picture-upload" className="sr-only">Profile Picture Upload</Label>
                     <input
+                      id="profile-picture-upload"
                       ref={pictureFileRef}
                       type="file"
                       accept="image/*"
-                      style={{ display: 'none' }}
+                      className="hidden"
+                      title="Upload profile picture"
+                      placeholder="Choose a profile picture"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) handlePictureUpload(file);
                       }}
                     />
+                    <Label htmlFor="profile-banner-upload" className="sr-only">Profile Banner Upload</Label>
                     <input
+                      id="profile-banner-upload"
                       ref={bannerFileRef}
                       type="file"
                       accept="image/*"
-                      style={{ display: 'none' }}
+                      className="hidden"
+                      title="Upload profile banner"
+                      placeholder="Choose a profile banner"
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) handleBannerUpload(file);

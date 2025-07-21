@@ -181,8 +181,9 @@ export function MusicLayout({ children }: MusicLayoutProps) {
         {/* Main Content */}
         <div className="flex-1 flex flex-col min-w-0">
           {/* Top Bar - Mobile */}
-          <div className="lg:hidden flex items-center justify-between p-4 border-b bg-background">
+          <div className="flex items-center justify-between p-4 border-b bg-background">
             <Button
+              className="lg:hidden"
               variant="ghost"
               size="sm"
               onClick={() => setMobileMenuOpen(true)}
@@ -194,55 +195,6 @@ export function MusicLayout({ children }: MusicLayoutProps) {
             
             <div className="flex items-center gap-2">
               <ThemeToggle />
-              {user ? (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="sm">
-                      <Avatar className="w-6 h-6">
-                        {userPicture && <AvatarImage src={userPicture} />}
-                        <AvatarFallback className="text-xs">
-                          {userDisplayName.slice(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56">
-                    <DropdownMenuLabel>
-                      <div className="flex flex-col space-y-1">
-                        <p className="text-sm font-medium">{userDisplayName}</p>
-                        {userNip05 && (
-                          <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Shield className="w-3 h-3" />
-                            {userNip05}
-                          </p>
-                        )}
-                      </div>
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem>
-                      <User className="w-4 h-4 mr-2" />
-                      Profile
-                    </DropdownMenuItem>
-                    <DropdownMenuItem>
-                      <Settings className="w-4 h-4 mr-2" />
-                      Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={handleLogout}>
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Sign out
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              ) : (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowLogin(true)}
-                >
-                  Sign in
-                </Button>
-              )}
             </div>
           </div>
 

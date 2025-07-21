@@ -90,7 +90,6 @@ export function Sidebar({ className = '' }: SidebarProps) {
               <p className="text-xs text-muted-foreground">Decentralized Music</p>
             </div>
           </div>         
-           <ThemeToggle />
         </div>
       </div>
 
