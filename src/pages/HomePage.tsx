@@ -69,14 +69,7 @@ export default function HomePage() {
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         
         {/* Header Section */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-            ZapTone
-          </h1>
-          <p className="text-lg text-muted-foreground mb-8">
-            Discover trending music from independent artists worldwide
-          </p>
-          
+        <div className="text-center mb-12">       
           {/* Search Bar */}
           <div className="relative max-w-lg mx-auto mb-8">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-muted-foreground w-5 h-5" />
