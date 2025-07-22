@@ -1,15 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { AudioPlayer } from '@/components/AudioPlayer';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+ import { AudioPlayer } from '@/components/AudioPlayer';
+ 
 import { 
   PlayCircle,
   Pause,
@@ -20,16 +12,11 @@ import {
   Repeat,
   SkipBack,
   SkipForward,
-  Settings,
-  LogOut,
-  User,
-  Shield,
   Dot,
   Menu,
   X
 } from 'lucide-react';
 import { useMusic } from '@/hooks/useMusic';
-import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useLoginActions } from '@/hooks/useLoginActions';
 import LoginDialog from '@/components/auth/LoginDialog';
 import { ThemeToggle } from '@/components/ThemeToggle';
@@ -41,7 +28,6 @@ interface MusicLayoutProps {
 }
 
 export function MusicLayout({ children }: MusicLayoutProps) {
-  const { user, metadata } = useCurrentUser();
   const { logout } = useLoginActions();
   const { toast } = useToast();  const { 
     playerState, 
@@ -119,27 +105,6 @@ export function MusicLayout({ children }: MusicLayoutProps) {
   const handleVolumeMouseLeave = () => {
     setVolumeHoverPosition(null);
   };
-
-  const handleLogout = async () => {
-    try {
-      await logout();
-      toast({
-        title: "Signed out successfully",
-        description: "You have been logged out of your account",
-      });
-    } catch (err) {
-      toast({
-        title: "Error signing out",
-        description: "Failed to sign out. Please try again.",
-        variant: "destructive"
-      });
-      console.error('Logout error:', err);
-    }
-  };
-
-  const userDisplayName = metadata?.name || `User ${user?.pubkey.slice(0, 8)}`;
-  const userPicture = metadata?.picture;
-  const userNip05 = metadata?.nip05;
 
   return (
     <div className="h-screen flex flex-col bg-background text-foreground">      {/* Main Content Area */}
