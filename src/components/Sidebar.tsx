@@ -25,7 +25,6 @@ import {
 } from 'lucide-react';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import { useLoginActions } from '@/hooks/useLoginActions';
-import { ThemeToggle } from '@/components/ThemeToggle';
 import { 
   DropdownMenu,
   DropdownMenuContent,

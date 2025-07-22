@@ -17,7 +17,6 @@ import {
   X
 } from 'lucide-react';
 import { useMusic } from '@/hooks/useMusic';
-import { useLoginActions } from '@/hooks/useLoginActions';
 import LoginDialog from '@/components/auth/LoginDialog';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useToast } from '@/hooks/useToast';
@@ -28,7 +27,6 @@ interface MusicLayoutProps {
 }
 
 export function MusicLayout({ children }: MusicLayoutProps) {
-  const { logout } = useLoginActions();
   const { toast } = useToast();  const { 
     playerState, 
     pauseTrack, 
