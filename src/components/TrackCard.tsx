@@ -52,11 +52,14 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
   const [zapCount] = useState(Math.floor(Math.random() * 20)); // Mock data
   const [zapDialog, setZapDialog] = useState<{ 
     open: boolean; 
-    recipient?: {
+    target?: {
+      id: string;
       pubkey: string;
-      name: string;
-      picture?: string;
-      lnAddress?: string;
+      kind: number;
+      content: string;
+      tags: string[][];
+      created_at: number;
+      sig: string;
     }; 
     content?: {
       type: 'track';
@@ -122,10 +125,11 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
       return;
     }
 
+    // Check if author has Lightning address
     const authorMetadata = author.data?.metadata;
-    const lnAddress = authorMetadata?.lud16 || authorMetadata?.lud06;
+    const { lud06, lud16 } = authorMetadata || {};
     
-    if (!lnAddress) {
+    if (!lud16 && !lud06) {
       toast({
         title: "No Lightning Address",
         description: "This artist doesn't have a Lightning address configured",
@@ -136,11 +140,14 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
 
     setZapDialog({
       open: true,
-      recipient: {
+      target: {
+        id: track.event.id,
         pubkey: track.event.pubkey,
-        name: authorMetadata?.name || authorName,
-        picture: authorMetadata?.picture,
-        lnAddress: lnAddress
+        kind: 30023, // Music track event kind
+        content: track.description || '',
+        tags: [['d', track.id]],
+        created_at: track.event.created_at,
+        sig: ''
       },
       content: {
         type: 'track',
@@ -160,7 +167,7 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
     if (navigator.share) {
       try {
         await navigator.share(shareData);
-      } catch (err) {
+      } catch {
         // User cancelled sharing
       }
     } else {
@@ -269,15 +276,18 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
                 <span className="text-xs">{likeCount}</span>
               </Button>
               
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2 text-muted-foreground hover:text-yellow-500 transition-colors"
-                onClick={handleZap}
-              >
-                <Zap className="w-4 h-4 mr-1" />
-                <span className="text-xs">{zapCount}</span>
-              </Button>
+              {/* Only show zap button if author has Lightning address */}
+              {(author.data?.metadata?.lud16 || author.data?.metadata?.lud06) && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-2 text-muted-foreground hover:text-yellow-500 transition-colors"
+                  onClick={handleZap}
+                >
+                  <Zap className="w-4 h-4 mr-1" />
+                  <span className="text-xs">{zapCount}</span>
+                </Button>
+              )}
               
               <Button
                 variant="ghost"
@@ -291,7 +301,7 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 px-2 text-muted-foreground hover:text-foreground transition-colors opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-8 px-2 text-muted-foreground hover:text-foreground opacity-0 group-hover:opacity-100 transition-all"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
@@ -304,7 +314,15 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
       <ZapDialog
         open={zapDialog.open}
         onOpenChange={(open) => setZapDialog({ ...zapDialog, open })}
-        recipient={zapDialog.recipient || { pubkey: '', name: '' }}
+        target={zapDialog.target || { 
+          id: track.event.id, 
+          pubkey: track.event.pubkey, 
+          kind: 30023, 
+          content: '', 
+          tags: [], 
+          created_at: track.event.created_at, 
+          sig: '' 
+        }}
         content={zapDialog.content}
       />
     </>

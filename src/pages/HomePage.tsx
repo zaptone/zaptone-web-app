@@ -29,11 +29,14 @@ export default function HomePage() {
   const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [zapDialog, setZapDialog] = useState<{ 
     open: boolean; 
-    recipient?: {
+    target?: {
+      id: string;
       pubkey: string;
-      name: string;
-      picture?: string;
-      lnAddress: string;
+      kind: number;
+      content: string;
+      tags: string[][];
+      created_at: number;
+      sig: string;
     }; 
     content?: {
       type: 'track';
@@ -234,7 +237,15 @@ export default function HomePage() {
       <ZapDialog
         open={zapDialog.open}
         onOpenChange={(open) => setZapDialog({ ...zapDialog, open })}
-        recipient={zapDialog.recipient || { pubkey: '', name: '' }}
+        target={zapDialog.target || { 
+          id: '', 
+          pubkey: '', 
+          kind: 0, 
+          content: '{}', 
+          tags: [], 
+          created_at: Math.floor(Date.now() / 1000), 
+          sig: '' 
+        }}
         content={zapDialog.content}
       />
     </div>

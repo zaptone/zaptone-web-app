@@ -1,11 +1,13 @@
+import { useWebLN } from '@/hooks/useWebLN';
 import { useState, useEffect } from 'react';
 import QRCode from 'qrcode';
+import confetti from 'canvas-confetti';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -16,18 +18,18 @@ import {
   ArrowLeft
 } from 'lucide-react';
 import { useToast } from '@/hooks/useToast';
+import type { NostrMetadata } from '@nostrify/nostrify';
 import { useBitcoinPrice } from '@/hooks/useBitcoinPrice';
 import { withLoading } from '@/hooks/useGlobalLoading';
+import { useNostr } from '@nostrify/react';
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+import { LNURL } from '@nostrify/nostrify/ln';
+import { NSchema as n, type NostrEvent } from '@nostrify/nostrify';
 
 interface ZapDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  recipient: {
-    pubkey: string;
-    name?: string;
-    picture?: string;
-    lnAddress?: string;
-  };
+  target: NostrEvent; // The event to be zapped (artist profile, track, etc.)
   content?: {
     type: 'track' | 'artist' | 'album';
     title: string;
@@ -37,9 +39,12 @@ interface ZapDialogProps {
 
 const PRESET_AMOUNTS = [21, 100, 500, 1000, 5000, 10000];
 
-export function ZapDialog({ open, onOpenChange, recipient, content }: ZapDialogProps) {
+export function ZapDialog({ open, onOpenChange, target, content }: ZapDialogProps) {
   const { toast } = useToast();
   const { formatSatsToUsd, bitcoinPrice, isLoading: isPriceLoading } = useBitcoinPrice();
+  const { nostr } = useNostr();
+  const { user } = useCurrentUser();
+  const { sendPayment: weblnSendPayment, isAvailable: weblnAvailable } = useWebLN();
   const [amount, setAmount] = useState<number>(100);
   const [message, setMessage] = useState('');
   const [isZapping, setIsZapping] = useState(false);
@@ -47,6 +52,169 @@ export function ZapDialog({ open, onOpenChange, recipient, content }: ZapDialogP
   const [invoice, setInvoice] = useState<string>('');
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string>('');
   const [showInvoiceView, setShowInvoiceView] = useState(false);
+  const [authorMetadata, setAuthorMetadata] = useState<NostrMetadata | null>(null);
+  const [isListeningForReceipt, setIsListeningForReceipt] = useState(false);
+  const [cleanupZapListener, setCleanupZapListener] = useState<(() => void) | null>(null);
+
+  /**
+   * Trigger celebration confetti animation
+   */
+  const triggerCelebration = () => {
+    // Fire confetti from different angles
+    const duration = 3000;
+    const end = Date.now() + duration;
+
+    const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7'];
+
+    const frame = () => {
+      confetti({
+        particleCount: 2,
+        angle: 60,
+        spread: 55,
+        origin: { x: 0, y: 0.8 },
+        colors: colors,
+        gravity: 0.8,
+        scalar: 1.2,
+      });
+      confetti({
+        particleCount: 2,
+        angle: 120,
+        spread: 55,
+        origin: { x: 1, y: 0.8 },
+        colors: colors,
+        gravity: 0.8,
+        scalar: 1.2,
+      });
+
+      if (Date.now() < end) {
+        requestAnimationFrame(frame);
+      }
+    };
+
+    frame();
+
+    // Additional burst from center
+    setTimeout(() => {
+      confetti({
+        particleCount: 100,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: colors,
+        gravity: 1,
+        scalar: 1.5,
+      });
+    }, 500);
+  };
+
+  /**
+   * Listen for zap receipt (kind 9735) to confirm payment
+   * Enhanced implementation based on proven nostr-zap pattern
+   */
+  const listenForZapReceipt = (invoice: string): () => void => {
+    setIsListeningForReceipt(true);
+    const since = Math.floor(Date.now() / 1000);
+    // eslint-disable-next-line prefer-const
+    let intervalId: NodeJS.Timeout | undefined;
+    // eslint-disable-next-line prefer-const
+    let timeoutId: NodeJS.Timeout | undefined;
+
+    const checkForReceipt = async () => {
+      try {
+        // Query for zap receipts (kind 9735)
+        const receipts = await nostr.query(
+          [{ kinds: [9735], since }],
+          { signal: AbortSignal.timeout(5000) }
+        );
+
+        // Check if any receipt contains our invoice
+        const matchingReceipt = receipts.find(event => 
+          event.tags.some(tag => tag[0] === 'bolt11' && tag[1] === invoice)
+        );        if (matchingReceipt) {
+          setZapSent(true);
+          setIsListeningForReceipt(false);
+          
+          if (intervalId) clearInterval(intervalId);
+          if (timeoutId) clearTimeout(timeoutId);
+          
+          // Trigger celebration animation
+          triggerCelebration();
+          
+          toast({
+            title: "⚡ Zap Confirmed!",
+            description: `Payment received and confirmed on Nostr!`,
+          });
+
+          // Close modal after celebration
+          setTimeout(() => {
+            onOpenChange(false);
+          }, 4000); // Close after 4 seconds to let user enjoy the animation
+        }
+      } catch {
+        // Error checking for zap receipt - silently continue
+      }
+    };
+
+    // Check immediately, then every 3 seconds
+    checkForReceipt();
+    intervalId = setInterval(checkForReceipt, 3000);
+    
+    // Stop after 2 minutes
+    timeoutId = setTimeout(() => {
+      if (intervalId) clearInterval(intervalId);
+      setIsListeningForReceipt(false);
+    }, 120000);
+
+    // Return cleanup function
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      if (timeoutId) clearTimeout(timeoutId);
+      setIsListeningForReceipt(false);
+    };
+  };
+
+  // Fetch author metadata when dialog opens
+  useEffect(() => {
+    if (open && target) {
+      const fetchAuthor = async () => {
+        try {
+          const [authorEvent] = await nostr.query(
+            [{ kinds: [0], authors: [target.pubkey], limit: 1 }],
+            { signal: AbortSignal.timeout(5000) }
+          );
+
+          if (authorEvent) {
+            const metadata = n.json().pipe(n.metadata()).parse(authorEvent.content);
+            setAuthorMetadata(metadata);
+          }
+        } catch (error) {
+          console.error('Failed to fetch author metadata:', error);
+        }
+      };
+
+      fetchAuthor();
+    }
+  }, [open, target, nostr]);
+
+  // Handle cleanup when modal closes
+  useEffect(() => {
+    if (!open) {
+      // Cleanup when modal is closed
+      if (cleanupZapListener) {
+        cleanupZapListener();
+        setCleanupZapListener(null);
+      }
+      
+      // Reset all state
+      setAmount(100);
+      setMessage('');
+      setInvoice('');
+      setQrCodeDataUrl('');
+      setZapSent(false);
+      setShowInvoiceView(false);
+      setAuthorMetadata(null);
+      setIsListeningForReceipt(false);
+    }
+  }, [open, cleanupZapListener]);
 
   // Generate QR code when invoice changes
   useEffect(() => {
@@ -70,78 +238,143 @@ export function ZapDialog({ open, onOpenChange, recipient, content }: ZapDialogP
     setAmount(value);
   };
 
-  const generateInvoice = async (): Promise<string> => {
-    if (!recipient.lnAddress) {
-      throw new Error('No Lightning address provided');
+  /**
+   * Create a zap request using Nostrify LNURL implementation
+   * Based on NIP-57 Lightning Zaps specification
+   */
+  const createZapRequest = async (): Promise<string> => {
+    if (!user) {
+      throw new Error('User must be logged in to send zaps');
     }
 
+    // Fetch the target event author's kind 0 metadata
+    const [authorEvent] = await nostr.query(
+      [{ kinds: [0], authors: [target.pubkey], limit: 1 }],
+      { signal: AbortSignal.timeout(5000) }
+    );
+
+    if (!authorEvent) {
+      throw new Error('Author metadata not found');
+    }
+
+    // Parse author metadata to get Lightning address
+    const metadata = n.json().pipe(n.metadata()).parse(authorEvent.content);
+    const { lud06, lud16 } = metadata;
+
+    // Get author's LNURL
+    let lnurl: LNURL | undefined;
+    if (lud16) {
+      lnurl = LNURL.fromLightningAddress(lud16);
+    } else if (lud06) {
+      lnurl = LNURL.fromString(lud06);
+    }
+
+    if (!lnurl) {
+      throw new Error('No Lightning address found for this user');
+    }
+
+    // Create zap request event (kind 9734)
+    const zapRequest = await user.signer.signEvent({
+      kind: 9734,
+      content: message || '',
+      tags: [
+        ['e', target.id], // Event being zapped
+        ['p', target.pubkey], // Author being zapped
+        ['amount', (amount * 1000).toString()], // Amount in millisats
+        ['relays', 'wss://relay.nostr.band'], // Relay for zap receipt
+        ['lnurl', lnurl.toString()],
+      ],
+      created_at: Math.floor(Date.now() / 1000),
+    });
+
+    // Try Nostrify LNURL first
     try {
-      // Parse Lightning Address (user@domain.com)
-      const [username, domain] = recipient.lnAddress.split('@');
-      if (!username || !domain) {
-        throw new Error('Invalid Lightning address format');
-      }
+      const { pr } = await lnurl.getInvoice({
+        amount: amount * 1000, // Convert sats to millisats
+        nostr: zapRequest,
+        signal: AbortSignal.timeout(10000)
+      });
 
-      // Step 1: Get LNURL pay endpoint from .well-known
-      const wellKnownUrl = `https://${domain}/.well-known/lnurlp/${username}`;
-      const wellKnownResponse = await fetch(wellKnownUrl);
+      return pr;
+    } catch (nostrifyError) {
+      console.warn('Nostrify LNURL failed, trying manual LNURL:', nostrifyError);
       
-      if (!wellKnownResponse.ok) {
-        throw new Error('Failed to fetch LNURL pay endpoint');
-      }
-
-      const wellKnownData = await wellKnownResponse.json();
-      
-      if (!wellKnownData.callback) {
-        throw new Error('No callback URL found in LNURL response');
-      }
-
-      // Step 2: Request invoice from callback URL
-      const amountMsat = amount * 1000; // Convert sats to millisats
-      const callbackUrl = new URL(wellKnownData.callback);
-      callbackUrl.searchParams.set('amount', amountMsat.toString());
-      
-      if (message) {
-        callbackUrl.searchParams.set('comment', message);
-      }
-
-      const invoiceResponse = await fetch(callbackUrl.toString());
-      
-      if (!invoiceResponse.ok) {
-        throw new Error('Failed to get invoice from Lightning service');
-      }
-
-      const invoiceData = await invoiceResponse.json();
-      
-      if (invoiceData.status === 'ERROR') {
-        throw new Error(invoiceData.reason || 'Lightning service returned an error');
-      }
-
-      if (!invoiceData.pr) {
-        throw new Error('No payment request received from Lightning service');
-      }
-
-      return invoiceData.pr;
-    } catch (error) {
-      console.error('LNURL error:', error);
-      throw error;
+      // Fallback to manual LNURL implementation
+      return await createZapRequestManual(lud16 || lud06!, zapRequest);
     }
   };
 
+  /**
+   * Manual LNURL implementation as fallback
+   */
+  const createZapRequestManual = async (lightningAddress: string, zapRequest: NostrEvent): Promise<string> => {
+    const [username, domain] = lightningAddress.split('@');
+    if (!username || !domain) {
+      throw new Error('Invalid Lightning address format');
+    }
+
+    // Step 1: Get LNURL pay endpoint from .well-known
+    const wellKnownUrl = `https://${domain}/.well-known/lnurlp/${username}`;
+    
+    const wellKnownResponse = await fetch(wellKnownUrl);
+    
+    if (!wellKnownResponse.ok) {
+      throw new Error(`Failed to fetch LNURL pay endpoint: ${wellKnownResponse.status}`);
+    }
+
+    const wellKnownData = await wellKnownResponse.json();
+    
+    if (!wellKnownData.callback) {
+      throw new Error('No callback URL found in LNURL response');
+    }
+
+    // Step 2: Request invoice from callback URL
+    const amountMsat = amount * 1000; // Convert sats to millisats
+    const callbackUrl = new URL(wellKnownData.callback);
+    callbackUrl.searchParams.set('amount', amountMsat.toString());
+    callbackUrl.searchParams.set('nostr', JSON.stringify(zapRequest));
+    
+    if (message) {
+      callbackUrl.searchParams.set('comment', message);
+    }
+
+    const invoiceResponse = await fetch(callbackUrl.toString());
+    
+    if (!invoiceResponse.ok) {
+      throw new Error(`Failed to get invoice from Lightning service: ${invoiceResponse.status}`);
+    }
+
+    const invoiceData = await invoiceResponse.json();
+    
+    if (invoiceData.status === 'ERROR') {
+      throw new Error(invoiceData.reason || 'Lightning service returned an error');
+    }
+
+    if (!invoiceData.pr) {
+      throw new Error('No payment request received from Lightning service');
+    }
+
+    return invoiceData.pr;
+  };
+
+  const generateInvoice = async (): Promise<string> => {
+    return await createZapRequest();
+  };
+
   const handleZap = async () => {
-    if (!amount || amount < 1) {
+    if (!user) {
       toast({
-        title: "Invalid Amount",
-        description: "Please enter a valid amount greater than 0 sats",
+        title: "Authentication Required",
+        description: "Please log in to send zaps",
         variant: "destructive"
       });
       return;
     }
 
-    if (!recipient.lnAddress) {
+    if (!amount || amount < 1) {
       toast({
-        title: "No Lightning Address",
-        description: "This artist doesn't have a Lightning address configured",
+        title: "Invalid Amount",
+        description: "Please enter a valid amount greater than 0 sats",
         variant: "destructive"
       });
       return;
@@ -153,32 +386,38 @@ export function ZapDialog({ open, onOpenChange, recipient, content }: ZapDialogP
       await withLoading(async () => {
         // Generate real Lightning invoice using LNURL
         const lightningInvoice = await generateInvoice();
+        
         setInvoice(lightningInvoice);
         setShowInvoiceView(true); // Switch to invoice view
 
-        // Try to open the user's Lightning wallet
-        // This will work if they have a Lightning wallet installed that supports lightning: URLs
-        const lightningUrl = `lightning:${lightningInvoice}`;
-        
-        // Create a temporary link to trigger wallet opening
-        const link = document.createElement('a');
-        link.href = lightningUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        // Start listening for zap receipt in the background
+        const cleanup = listenForZapReceipt(lightningInvoice);
+        setCleanupZapListener(() => cleanup);
+
+        // Try WebLN payment if available
+        if (weblnAvailable) {
+          try {
+            await weblnSendPayment(lightningInvoice);
+            // Don't set zapSent here, let listenForZapReceipt handle it
+            toast({
+              title: "⚡ Payment Sent!",
+              description: `Sent ${amount} sats via WebLN. Waiting for confirmation...`,
+            });
+            return;
+          } catch {
+            // Fall through to show manual invoice
+          }
+        }
       }, 'Generating Lightning invoice...');
 
       setIsZapping(false);
       
-      toast({
-        title: "⚡ Invoice Generated!",
-        description: `Invoice for ${amount} sats created. Please complete payment in your Lightning wallet.`,
-      });
-
-      // Note: In a production app, you would:
-      // 1. Monitor the invoice for payment confirmation
-      // 2. Broadcast a zap event to Nostr once payment is confirmed
-      // 3. Update the UI accordingly
+      if (!weblnAvailable) {
+        toast({
+          title: "⚡ Invoice Generated!",
+          description: `Invoice for ${amount} sats created. Please complete payment in your Lightning wallet.`,
+        });
+      }
       
     } catch (error) {
       setIsZapping(false);
@@ -203,12 +442,6 @@ export function ZapDialog({ open, onOpenChange, recipient, content }: ZapDialogP
   };
 
   const handleClose = () => {
-    setAmount(100);
-    setMessage('');
-    setInvoice('');
-    setQrCodeDataUrl('');
-    setZapSent(false);
-    setShowInvoiceView(false);
     onOpenChange(false);
   };
 
@@ -245,6 +478,12 @@ export function ZapDialog({ open, onOpenChange, recipient, content }: ZapDialogP
             <Zap className="w-5 h-5 text-yellow-400" />
             {showInvoiceView ? 'Lightning Invoice' : 'Send Lightning Zap'}
           </DialogTitle>
+          <DialogDescription>
+            {showInvoiceView 
+              ? 'Complete your Lightning payment using one of the methods below'
+              : 'Send a Lightning zap to support this artist'
+            }
+          </DialogDescription>
         </DialogHeader>
 
         {showInvoiceView ? (
@@ -253,17 +492,25 @@ export function ZapDialog({ open, onOpenChange, recipient, content }: ZapDialogP
             {/* Recipient Info */}
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
               <Avatar className="w-10 h-10">
-                <AvatarImage src={recipient.picture} alt={recipient.name} />
+                <AvatarImage src={authorMetadata?.picture} alt={authorMetadata?.name} />
                 <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                  {recipient.name?.slice(0, 2).toUpperCase() || 'A'}
+                  {authorMetadata?.name?.slice(0, 2).toUpperCase() || 'A'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <p className="font-medium">{recipient.name || 'Unknown Artist'}</p>
-                <p className="text-sm text-muted-foreground">
-                  {formatSats(amount)} sats
-                  {content && ` • For "${content.title}"`}
-                </p>
+                <p className="font-medium">{authorMetadata?.name || 'Unknown Artist'}</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    {formatSats(amount)} sats
+                    {content && ` • For "${content.title}"`}
+                  </p>
+                  {isListeningForReceipt && (
+                    <div className="flex items-center gap-1">
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
+                      <span className="text-xs text-yellow-600">Listening for payment...</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -329,13 +576,13 @@ export function ZapDialog({ open, onOpenChange, recipient, content }: ZapDialogP
             {/* Recipient Info */}
             <div className="flex items-center gap-3 p-3 bg-muted/50 rounded-lg">
               <Avatar className="w-10 h-10">
-                <AvatarImage src={recipient.picture} alt={recipient.name} />
+                <AvatarImage src={authorMetadata?.picture} alt={authorMetadata?.name} />
                 <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white">
-                  {recipient.name?.slice(0, 2).toUpperCase() || 'A'}
+                  {authorMetadata?.name?.slice(0, 2).toUpperCase() || 'A'}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1">
-                <p className="font-medium">{recipient.name || 'Unknown Artist'}</p>
+                <p className="font-medium">{authorMetadata?.name || 'Unknown Artist'}</p>
                 {content && (
                   <p className="text-sm text-muted-foreground">
                     For "{content.title}"
@@ -429,21 +676,47 @@ export function ZapDialog({ open, onOpenChange, recipient, content }: ZapDialogP
             </div>
           </div>
         ) : (
-          /* Success State */
-          <div className="text-center py-8 space-y-4">
-            <div className="w-16 h-16 bg-yellow-100 dark:bg-yellow-900/30 rounded-full flex items-center justify-center mx-auto">
-              <CheckCircle className="w-8 h-8 text-yellow-600" />
+          /* Success State - Celebration Mode! */
+          <div className="text-center py-8 space-y-6 relative">
+            {/* Animated celebration icon */}
+            <div className="relative mx-auto">
+              <div className="w-20 h-20 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center mx-auto shadow-lg animate-bounce">
+                <CheckCircle className="w-10 h-10 text-white" />
+              </div>
+              {/* Celebration rings */}
+              <div className="absolute inset-0 w-20 h-20 rounded-full bg-yellow-400/30 animate-ping"></div>
+              <div className="absolute inset-2 w-16 h-16 rounded-full bg-orange-400/20 animate-pulse"></div>
             </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium">⚡ Zap Sent!</h3>
-              <p className="text-muted-foreground">
-                Successfully sent {formatSats(amount)} sats to {recipient.name || 'artist'}
+
+            {/* Celebration text with gradient */}
+            <div className="space-y-3">
+              <h3 className="text-2xl font-bold bg-gradient-to-r from-yellow-600 to-orange-600 bg-clip-text text-transparent">
+                🎉 Zap Sent Successfully! 🎉
+              </h3>
+              <p className="text-lg text-muted-foreground">
+                <span className="font-semibold text-yellow-600">{formatSats(amount)} sats</span> sent to{' '}
+                <span className="font-semibold">{authorMetadata?.name || 'artist'}</span>
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Your support means the world! ⚡💝
               </p>
             </div>
-            <Badge variant="secondary" className="bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300">
-              <Zap className="w-3 h-3 mr-1" />
-              Lightning Payment Confirmed
-            </Badge>
+
+            {/* Animated badges */}
+            <div className="flex justify-center gap-2">
+              <Badge variant="secondary" className="bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 text-yellow-700 dark:text-yellow-300 animate-pulse">
+                <Zap className="w-3 h-3 mr-1" />
+                Confirmed
+              </Badge>
+              <Badge variant="secondary" className="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 text-green-700 dark:text-green-300">
+                ✅ Receipt Received
+              </Badge>
+            </div>
+
+            {/* Closing message */}
+            <p className="text-xs text-muted-foreground mt-4">
+              Modal will close automatically in a few seconds...
+            </p>
           </div>
         )}
       </DialogContent>

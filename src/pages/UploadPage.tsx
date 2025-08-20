@@ -322,6 +322,9 @@ export function UploadPage() {
               multiple
               accept="audio/*"
               className="hidden"
+              placeholder="Select audio files"
+              title="Upload audio files"
+              aria-label="Upload audio files"
               onChange={(e) => e.target.files && handleFiles(e.target.files)}
             />
           </div>
@@ -503,6 +506,8 @@ export function UploadPage() {
               type="file"
               accept="image/*"
               className="hidden"
+              placeholder="Select cover image"
+              title="Upload cover image"
               onChange={(e) => {
                 const file = e.target.files?.[0];
                 if (file) {
