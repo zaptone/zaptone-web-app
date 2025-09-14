@@ -10,6 +10,7 @@ import { useNostrPublish } from '@/hooks/useNostrPublish';
 import { genUserName } from '@/lib/genUserName';
 import { ZapDialog } from '@/components/ZapDialog';
 import { useToast } from '@/hooks/useToast';
+import LoginDialog from '@/components/auth/LoginDialog';
 import { 
   Play, 
   Pause, 
@@ -50,6 +51,7 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
   const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(Math.floor(Math.random() * 50)); // Mock data
   const [zapCount] = useState(Math.floor(Math.random() * 20)); // Mock data
+  const [showLoginDialog, setShowLoginDialog] = useState(false);
   const [zapDialog, setZapDialog] = useState<{ 
     open: boolean; 
     target?: {
@@ -87,11 +89,7 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
 
   const handleLike = () => {
     if (!user) {
-      toast({
-        title: "Login Required",
-        description: "Please log in to like tracks",
-        variant: "destructive"
-      });
+      setShowLoginDialog(true);
       return;
     }
 
@@ -117,10 +115,15 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
 
   const handleZap = () => {
     if (!user) {
+      setShowLoginDialog(true);
+      return;
+    }
+
+    // Check if author metadata is still loading
+    if (author.isLoading) {
       toast({
-        title: "Login Required",
-        description: "Please log in to send zaps",
-        variant: "destructive"
+        title: "Loading Author Info",
+        description: "Please wait while we load the artist information...",
       });
       return;
     }
@@ -132,7 +135,7 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
     if (!lud16 && !lud06) {
       toast({
         title: "No Lightning Address",
-        description: "This artist doesn't have a Lightning address configured",
+        description: "This artist hasn't configured a Lightning address for receiving zaps yet",
         variant: "destructive"
       });
       return;
@@ -276,18 +279,15 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
                 <span className="text-xs">{likeCount}</span>
               </Button>
               
-              {/* Only show zap button if author has Lightning address */}
-              {(author.data?.metadata?.lud16 || author.data?.metadata?.lud06) && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-2 text-muted-foreground hover:text-yellow-500 transition-colors"
-                  onClick={handleZap}
-                >
-                  <Zap className="w-4 h-4 mr-1" />
-                  <span className="text-xs">{zapCount}</span>
-                </Button>
-              )}
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-muted-foreground hover:text-yellow-500 transition-colors"
+                onClick={handleZap}
+              >
+                <Zap className="w-4 h-4 mr-1" />
+                <span className="text-xs">{zapCount}</span>
+              </Button>
               
               <Button
                 variant="ghost"
@@ -324,6 +324,13 @@ export function TrackCard({ track, isPlaying = false, onPlayPause, showAuthor = 
           sig: '' 
         }}
         content={zapDialog.content}
+      />
+
+      {/* Login Dialog */}
+      <LoginDialog 
+        isOpen={showLoginDialog} 
+        onClose={() => setShowLoginDialog(false)}
+        onLogin={() => setShowLoginDialog(false)}
       />
     </>
   );
