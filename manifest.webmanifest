@@ -1,0 +1,25 @@
+{
+  "name": "ZapTone - Decentralized Music Platform",
+  "short_name": "ZapTone",
+  "description": "Discover, share, and support artists with Bitcoin Lightning payments on a decentralized music platform powered by Nostr.",
+  "start_url": "/",
+  "display": "standalone",
+  "theme_color": "#8b5cf6",
+  "background_color": "#0f0f23",
+  "orientation": "portrait-primary",
+  "categories": ["music", "entertainment", "lifestyle"],
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
